@@ -23,7 +23,7 @@
 #include "jpeginfo.h"
 
 
-#define VERSION     "1.5beta"
+#define VERSION     "1.5"
 #define BUF_LINES   200
 
 #ifndef HOST_TYPE

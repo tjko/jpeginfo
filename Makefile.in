@@ -3,7 +3,7 @@
 # 
 # Makefile for jpeginfo 
 #
-Version = 1.5b
+Version = 1.5
 PKGNAME = jpeginfo
 
 SHELL = /bin/sh
@@ -80,7 +80,7 @@ printable.man:
 	groff -Tascii -mandoc ./$(PKGNAME).1 | tee $(PKGNAME).prn | sed 's/.//g' >$(PKGNAME).txt
 
 install.man:
-	$(INSTALL) -m 644 $(PKGNAME).1 $(mandir)/$(PKGNAME).1
+	$(INSTALL) -m 644 $(PKGNAME).1 $(mandir)/man1/$(PKGNAME).1
 
 # a tradition !
 love:	

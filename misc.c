@@ -1,4 +1,5 @@
 /* misc.c - misc routines for jpeginfo
+ * $Id$
  *
  * Copyright (c) Timo Kokkonen, 1997.
  */
@@ -7,12 +8,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+static char *rcsid = "$Id$";
 
 
 int is_dir(FILE *fp)
 {
  struct stat buf;
- 
+
  if (fstat(fileno(fp),&buf)) {
    fprintf(stderr,"jpeginfo: fstat() failed.\n");
    exit(3);
@@ -22,7 +24,6 @@ int is_dir(FILE *fp)
 
  return 0;
 }
-
 
 
 long filesize(FILE *fp) 
@@ -40,6 +41,8 @@ long filesize(FILE *fp)
 
 void delete_file(char *name, int verbose_mode, int quiet_mode)
 {
+  if (rcsid); 
+
   if (verbose_mode&&!quiet_mode) fprintf(stderr,"deleting: %s\n",name);
   if (unlink(name)&&!quiet_mode) 
     fprintf(stderr,"Error unlinking file: %s\n",name);

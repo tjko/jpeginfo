@@ -1,6 +1,8 @@
 /* config.h.in. 
  * $Id$
  *
+ */
+
 
 /* Define if you have the ANSI C header files.  */
 #undef STDC_HEADERS

@@ -4,8 +4,9 @@
  * Copyright (c) Timo Kokkonen, 1997.
  */
 
-#include <stdio.h>
 #include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 static char *rcsid = "$Id$";

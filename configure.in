@@ -50,7 +50,8 @@ AC_CHECK_SIZEOF(int)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(getopt_long)
+AC_CHECK_FUNCS(getopt_long, break, [GNUGETOPT="getopt.o getopt1.o"])
+AC_SUBST(GNUGETOPT)
 
 
 dnl own tests

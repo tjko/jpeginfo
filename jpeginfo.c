@@ -10,8 +10,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
+#if HAVE_GETOPT_H && HAVE_GETOPT_LONG
+  #include <getopt.h>
+#else
+  #include "getopt.h"
 #endif
 #include <string.h>
 #include <setjmp.h>

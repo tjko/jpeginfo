@@ -29,11 +29,6 @@ infodir = $(prefix)/info
 mandir = $(prefix)/man
 
 
-USER	= root
-GROUP	= root
-
-
-INCLUDES = -I. @includeopt@
 
 CC        = @CC@ 
 XCPPFLAGS = @CPPFLAGS@
@@ -55,7 +50,7 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 DIRNAME = $(shell basename `pwd`) 
 DISTNAME  = $(PKGNAME)-$(Version)
 
-OBJS = $(PKGNAME).o misc.o md5.o
+OBJS = $(PKGNAME).o misc.o @GNUGETOPT@ md5.o 
 
 $(PKGNAME):	$(OBJS) 
 	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LDFLAGS) $(LIBS) 

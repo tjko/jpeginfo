@@ -1254,17 +1254,19 @@ if eval "test \"`echo '$ac_cv_func_'$ac_func`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_func 1
 EOF
- 
+ break
 else
   echo "$ac_t""no" 1>&6
+GNUGETOPT="getopt.o getopt1.o"
 fi
 done
 
 
 
 
+
 echo $ac_n "checking for broken jmorecfg.h (METHODDEF)""... $ac_c" 1>&6
-echo "configure:1268: checking for broken jmorecfg.h (METHODDEF)" >&5
+echo "configure:1270: checking for broken jmorecfg.h (METHODDEF)" >&5
 if eval "test \"`echo '$''{'jpeginfo_cv_broken_methoddef'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1272,7 +1274,7 @@ else
   jpeginfo_cv_broken_methoddef=no
 else
   cat > conftest.$ac_ext <<EOF
-#line 1276 "configure"
+#line 1278 "configure"
 #include "confdefs.h"
 
 #include <stdio.h>
@@ -1283,7 +1285,7 @@ int main(void)
   return 0;
 }
 EOF
-if { (eval echo configure:1287: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1289: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
 then
   jpeginfo_cv_broken_methoddef=no
 else
@@ -1442,6 +1444,7 @@ s%@INSTALL_PROGRAM@%$INSTALL_PROGRAM%g
 s%@INSTALL_DATA@%$INSTALL_DATA%g
 s%@SET_MAKE@%$SET_MAKE%g
 s%@CPP@%$CPP%g
+s%@GNUGETOPT@%$GNUGETOPT%g
 
 CEOF
 EOF

@@ -3,7 +3,7 @@
 # 
 # Makefile for jpeginfo 
 #
-Version = 1.5
+Version = 1.6.0
 PKGNAME = jpeginfo
 
 SHELL = /bin/sh
@@ -23,10 +23,10 @@ bindir = $(exec_prefix)/bin
 libdir = $(prefix)/lib
 
 # Where to put the Info files
-infodir = $(prefix)/info
+infodir = $(prefix)/share/info
 
 # Where to put the manual pages.
-mandir = $(prefix)/man
+mandir = $(prefix)/share/man
 
 
 
@@ -72,15 +72,19 @@ dist:	clean_all
 backup:	dist
 
 
-install: all  install.man
-	$(INSTALL) -m 755 $(PKGNAME) $(bindir)/$(PKGNAME)
+install: all install.dirs install.man
+	$(INSTALL) -m 755 $(PKGNAME) $(INSTALL_ROOT)/$(bindir)/$(PKGNAME)
 
 printable.man:
 	groff -Tps -mandoc ./$(PKGNAME).1 >$(PKGNAME).ps
 	groff -Tascii -mandoc ./$(PKGNAME).1 | tee $(PKGNAME).prn | sed 's/.//g' >$(PKGNAME).txt
 
 install.man:
-	$(INSTALL) -m 644 $(PKGNAME).1 $(mandir)/man1/$(PKGNAME).1
+	$(INSTALL) -m 644 $(PKGNAME).1 $(INSTALL_ROOT)/$(mandir)/man1/$(PKGNAME).1
+
+install.dirs:
+	$(INSTALL) -d -m 755 $(INSTALL_ROOT)/$(bindir)
+	$(INSTALL) -d -m 755 $(INSTALL_ROOT)/$(mandir)/man1
 
 # a tradition !
 love:	

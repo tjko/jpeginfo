@@ -1,6 +1,8 @@
  /*******************************************************************
+ * $Id$
+ * 
  * JPEGinfo 
- * Copyright (c) Timo Kokkonen, 1995-1997.
+ * Copyright (c) Timo Kokkonen, 1995-1998.
  *
  * requires libjpeg (from JPEG Group's JPEG software 
  *                     release 6a or later...)
@@ -10,9 +12,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #ifndef HPUX
 #include <getopt.h>
 #endif
@@ -20,19 +19,19 @@
 #include <jpeglib.h>
 #include <setjmp.h>
 
-#include "md5stuff.h"
+#include "jpeginfo.h"
 
 
-#define MIN(a,b) (a<b?a:b)
-
-#define VERSIO "1.4"
-
-#define BUF_LINES 200
+#define VERSION     "1.5beta"
+#define BUF_LINES   200
 
 #ifdef SGI
 #undef METHODDEF
 #define METHODDEF(x) static x
 #endif
+
+
+static char *rcsid = "$Id$";
 
 struct my_error_mgr {
   struct jpeg_error_mgr pub;
@@ -74,6 +73,7 @@ my_error_exit (j_common_ptr cinfo)
   longjmp(myerr->setjmp_buffer,1);
 }
 
+
 METHODDEF(void)
 my_output_message (j_common_ptr cinfo)
 {
@@ -85,54 +85,17 @@ my_output_message (j_common_ptr cinfo)
 }
 
 
-int is_dir(FILE *fp)
-{
- struct stat buf;
- if (fstat(fileno(fp),&buf)) {
-   fprintf(stderr,"jpeginfo: fstat() failed.\n");
-   exit(3);
- }
- 
- if (S_ISDIR(buf.st_mode)) return 1;
-
- return 0;
-}
-
-
-long filesize(FILE *fp) 
-{
-  struct stat buf;
-  if (!fp) return -1;
-
-  if (fstat(fileno(fp),&buf)) {
-    fprintf(stderr,"jpeginfo: fstat() failed.\n");
-    exit(3);
-  }
-
-  return buf.st_size;
-}
-
-char *fgetstr(char *s,int n,FILE *stream) 
-{
-  char *p;
-  
-  if (!fgets(s,n,stream)) return NULL;
-  p=&s[strlen(s)-1];
-  while ((p>=s)&&((*p==10)||(*p==13))) *p--=0;
-  return s;
-}
-
-
 void no_memory(void)
 {
   if (!quiet_mode) fprintf(stderr,"jpeginfo: not enough memory.\n");
   exit(3);
 }
 
+
 void p_usage(void) 
 {
  if (!quiet_mode) {
-  fprintf(stderr,"jpeginfo " VERSIO 
+  fprintf(stderr,"jpeginfo " VERSION
 	  " Copyright (c) Timo Kokkonen, 1995-1997.\n"); 
 
   fprintf(stderr,
@@ -174,12 +137,6 @@ void p_usage(void)
  exit(1);
 }
 
-void delete_file(char *name)
-{
-  if (verbose_mode&&!quiet_mode) fprintf(stderr,"deleting: %s\n",name);
-  if (unlink(name)&&!quiet_mode) 
-    fprintf(stderr,"Error unlinking file: %s\n",name);
-}
 
 /*****************************************************************/
 int main(int argc, char **argv) 
@@ -201,6 +158,8 @@ int main(int argc, char **argv)
   long fs;
   char *md5buf,digest[16],digest_text[33];
   
+
+  if (rcsid); /* to keep compiler from not complaining about rcsid */
  
   cinfo.err = jpeg_std_error(&jerr.pub);
   jpeg_create_decompress(&cinfo);
@@ -297,7 +256,7 @@ int main(int argc, char **argv)
       fclose(infile);
       if (list_mode) printf(" %s",current);
       printf(" [ERROR]\n");
-      if (delete_mode) delete_file(current);
+      if (delete_mode) delete_file(current,verbose_mode,quiet_mode);
       continue;
    }
 
@@ -311,8 +270,9 @@ int main(int argc, char **argv)
      continue;
    }
 
+   fs=filesize(infile);
+
    if (md5_mode) {
-     fs=filesize(infile);
      md5buf=malloc(fs);
      if (!md5buf) no_memory();
      fread(md5buf,1,fs,infile);
@@ -351,9 +311,10 @@ int main(int argc, char **argv)
      
      if (cinfo.CCIR601_sampling) printf(",CCIR601");
 
-     printf(" ");
+     printf(" %7ld ",fs);
 
-   } else printf("%c ",(cinfo.progressive_mode?'P':'N'));
+   } else printf("%c %7ld ",(cinfo.progressive_mode?'P':'N'),fs);
+
 
    if (md5_mode) printf("%s ",digest_text);
    
@@ -380,7 +341,8 @@ int main(int argc, char **argv)
      if (!global_error_counter) printf(" [OK]\n");
      else {
        printf(" [WARNING]\n");
-       if (delete_mode && !del_mode) delete_file(current);
+       if (delete_mode && !del_mode) 
+	 delete_file(current,verbose_mode,quiet_mode);
      }
    }
    else { /* !check_mode */

@@ -39,7 +39,7 @@ STRIP  = strip
 DIRNAME = $(shell basename `pwd`) 
 DISTNAME  = $(PKGNAME)-$(Version)
 
-OBJS = $(PKGNAME).o md5stuff.o md5/md5c.o
+OBJS = $(PKGNAME).o misc.o md5/md5c.o
 
 $(PKGNAME):	$(OBJS) 
 	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LIBS) 

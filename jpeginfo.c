@@ -134,7 +134,7 @@ void p_usage(void)
 /*****************************************************************/
 int main(int argc, char **argv) 
 {
-  FILE *infile, *listfile;
+  FILE *infile=NULL, *listfile=NULL;
   JSAMPARRAY buf = malloc(sizeof(JSAMPROW)*BUF_LINES);
   MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
   int c,i,j,lines_read, err_count;

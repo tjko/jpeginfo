@@ -62,10 +62,13 @@ $(PKGNAME):	$(OBJS)
 all:	$(PKGNAME) 
 
 strip:
-	for i in $(PKGNAME) ; do [ -x $i ] && $(STRIP) $$i ; done
+	for i in $(PKGNAME) ; do [ -x $$i ] && $(STRIP) $$i ; done
 
 clean:
-	rm -f *~ *.o core a.out make.log Makefile config.h config.log config.cache config.status \#*\# $(PKGNAME) $(OBJS)
+	rm -f *~ *.o core a.out make.log \#*\# $(PKGNAME) $(OBJS)
+
+clean_all: clean
+	rm -f Makefile config.h config.log config.cache config.status
 
 dist:	clean
 	(cd .. ; tar cvzf $(DISTNAME).tar.gz $(DIRNAME))

@@ -19,14 +19,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
+#include <ctype.h>
 #include <jpeglib.h>
 
 #include "md5.h"
 #include "jpeginfo.h"
 
 
-#define VERSION     "1.6.0b"
-#define BUF_LINES   200
+#define VERSION     "1.6.0"
+#define BUF_LINES   255
 
 #ifndef HOST_TYPE
 #define HOST_TYPE ""
@@ -36,6 +37,9 @@
 #undef METHODDEF
 #define METHODDEF(x) static x
 #endif
+
+#define EXIF_JPEG_MARKER   JPEG_APP0+1
+#define EXIF_IDENT_STRING  "Exif\000\000"
 
 
 static char *rcsid = "$Id$";
@@ -61,14 +65,26 @@ static struct option long_options[] = {
   {"info",0,0,'i'},
   {"md5",0,0,'5'},
   {"version",0,0,'V'},
+  {"comments",0,0,'C'},
   {0,0,0,0}
 };
 
-
-static int global_error_counter;
-static int global_total_errors;
-static int verbose_mode = 0;
-static int quiet_mode = 0;
+FILE *infile=NULL;
+FILE *listfile=NULL;
+int global_error_counter;
+int global_total_errors;
+int verbose_mode = 0;
+int quiet_mode = 0;
+int delete_mode = 0;
+int check_mode = 0;
+int com_mode = 0;
+int del_mode = 0;
+int opt_index = 0;
+int list_mode = 0;
+int longinfo_mode = 0;
+int input_from_file = 0;
+int md5_mode = 0;
+char *current = NULL;
 
 /*****************************************************************/
 
@@ -108,6 +124,7 @@ void p_usage(void)
   fprintf(stderr,
        "Usage: jpeginfo [options] <filenames>\n\n"
        "  -c, --check     check files also for errors\n"
+       "  -C, --comments  display comments (from COM markers)\n" 
        "  -d, --delete    delete files that have errors\n"
        "  -f<filename>,  --file<filename>\n"
        "                  read the filenames to process from given file\n"
@@ -135,19 +152,12 @@ void p_usage(void)
 /*****************************************************************/
 int main(int argc, char **argv) 
 {
-  FILE *infile=NULL, *listfile=NULL;
   JSAMPARRAY buf = malloc(sizeof(JSAMPROW)*BUF_LINES);
+  jpeg_saved_marker_ptr exif_marker, cmarker;
   MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
-  int c,i,j,lines_read, err_count;
-  int delete_mode = 0;
-  int check_mode = 0;
-  int del_mode = 0;
-  int opt_index = 0;
-  int list_mode = 0;
-  int longinfo_mode = 0;
-  int input_from_file = 0;
-  int md5_mode = 0;
-  char *current;
+  volatile int i;
+  int c,j,lines_read, err_count;
+  char ch;
   char namebuf[1024];
   long fs;
   char *md5buf,digest[16],digest_text[33];
@@ -172,7 +182,8 @@ int main(int argc, char **argv)
   /* parse command line parameters */
   while(1) {
     opt_index=0;
-    if ((c=getopt_long(argc,argv,"livVdchqm:f:5",long_options,&opt_index))==-1) 
+    if ( (c=getopt_long(argc,argv,"livVdcChqm:f:5",
+			long_options,&opt_index))  == -1) 
       break;
     switch (c) {
     case 'm':
@@ -216,6 +227,9 @@ int main(int argc, char **argv)
       break;
     case '5':
       md5_mode=1;
+      break;
+    case 'C':
+      com_mode=1;
       break;
     case '?':
       break;
@@ -280,17 +294,29 @@ int main(int argc, char **argv)
 
    global_error_counter=0;
    err_count=jerr.pub.num_warnings;
+   if (com_mode) jpeg_save_markers(&cinfo, JPEG_COM, 0xffff);
+   jpeg_save_markers(&cinfo, EXIF_JPEG_MARKER, 0xffff);
    jpeg_stdio_src(&cinfo, infile);
    jpeg_read_header(&cinfo, TRUE); 
+
+   /* check for Exif marker */
+   exif_marker=NULL;
+   cmarker=cinfo.marker_list;
+   while (cmarker) {
+     if (cmarker->marker == EXIF_JPEG_MARKER) {
+       if (!memcmp(cmarker->data,EXIF_IDENT_STRING,6)) exif_marker=cmarker;
+     }
+     cmarker=cmarker->next;
+   }   
 
    if (quiet_mode < 2) {
      printf("%4d x %-4d %2dbit ",(int)cinfo.image_width,
             (int)cinfo.image_height,(int)cinfo.num_components*8);
 
-
-     if (cinfo.saw_Adobe_marker) printf("Adobe ");
+     if (exif_marker) printf("Exif  ");
      else if (cinfo.saw_JFIF_marker) printf("JFIF  ");
-     else printf("n/a   ");
+     else if (cinfo.saw_Adobe_marker) printf("Adobe ");
+     else printf("n/a   "); 
 
      if (longinfo_mode) {
        printf("%s %s",(cinfo.progressive_mode?"Progressive":"Normal"),
@@ -307,6 +333,22 @@ int main(int argc, char **argv)
 
      if (md5_mode) printf("%s ",digest_text);
      if (list_mode) printf("%s ",current);
+
+     if (com_mode) {
+       cmarker=cinfo.marker_list;
+       while (cmarker) {
+	 if (cmarker->marker == JPEG_COM) {
+	   printf("\"");
+	   for (j=0;j<cmarker->data_length;j++) {
+	     ch = cmarker->data[j];
+	     if (ch < 32 || iscntrl(ch)) continue;
+	     printf("%c",cmarker->data[j]);
+	   }
+	   printf("\" ");
+	 }
+	 cmarker=cmarker->next;
+       }
+     }
    }
 
    if (check_mode) {

@@ -35,11 +35,12 @@ GROUP	= root
 
 INCLUDES = -I. @includeopt@
 
-CC     = @CC@
-CFLAGS = @CFLAGS@
-LDFLAGS= @LDFLAGS@
-LIBS   = @LIBS@
-STRIP  = strip
+CC        = @CC@ 
+XCPPFLAGS = @CPPFLAGS@
+CFLAGS    = @CFLAGS@ $(XCPPFLAGS)
+LDFLAGS   = @LDFLAGS@
+LIBS      = @LIBS@
+STRIP     = strip
 
 
 INSTALL = @INSTALL@
@@ -57,7 +58,7 @@ DISTNAME  = $(PKGNAME)-$(Version)
 OBJS = $(PKGNAME).o misc.o md5.o
 
 $(PKGNAME):	$(OBJS) 
-	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LIBS) 
+	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LDFLAGS) $(LIBS) 
 
 all:	$(PKGNAME) 
 
@@ -70,7 +71,7 @@ clean:
 clean_all: clean
 	rm -f Makefile config.h config.log config.cache config.status
 
-dist:	clean
+dist:	clean_all
 	(cd .. ; tar cvzf $(DISTNAME).tar.gz $(DIRNAME))
 
 backup:	dist

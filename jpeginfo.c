@@ -42,14 +42,12 @@ struct my_error_mgr {
   struct jpeg_error_mgr pub;
   jmp_buf setjmp_buffer;   
 };
-
 typedef struct my_error_mgr * my_error_ptr;
 
-struct jpeg_decompress_struct cinfo;
-struct my_error_mgr jerr;
+static struct jpeg_decompress_struct cinfo;
+static struct my_error_mgr jerr;
 
-
-struct option long_options[] = {
+static struct option long_options[] = {
   {"verbose",0,0,'v'},
   {"delete",0,0,'d'},
   {"mode",1,0,'m'},
@@ -65,9 +63,10 @@ struct option long_options[] = {
 };
 
 
-int global_error_counter;
-int verbose_mode = 0;
-int quiet_mode = 0;
+static int global_error_counter;
+static int global_total_errors;
+static int verbose_mode = 0;
+static int quiet_mode = 0;
 
 /*****************************************************************/
 
@@ -86,8 +85,9 @@ my_output_message (j_common_ptr cinfo)
   char buffer[JMSG_LENGTH_MAX];
 
   (*cinfo->err->format_message) (cinfo, buffer); 
-  printf(" %s ",buffer);
-  global_error_counter++;
+  if (quiet_mode < 2) printf(" %s ",buffer);
+  global_error_counter++; 
+  global_total_errors++;
 }
 
 
@@ -116,6 +116,7 @@ void p_usage(void)
        "  -i, --info      display even more information about pictures\n"
        "  -l, --lsstyle   use alternate listing format (ls -l style)\n"
        "  -v, --verbose   enable verbose mode (positively chatty)\n"
+       "  --version	  print program version and exit\n" 
        "  -q, --quiet     quiet mode, output just jpeg infos\n"
        "  -m<mode>, --mode=<mode>\n"
        "                  defines which jpegs to remove (when using"
@@ -126,7 +127,7 @@ void p_usage(void)
        " (default)\n\n\n");
  }
 
- exit(1);
+ exit(0);
 }
 
 
@@ -150,7 +151,7 @@ int main(int argc, char **argv)
   long fs;
   char *md5buf,digest[16],digest_text[33];
   
-
+  global_total_errors=0;
   if (rcsid); /* to keep compiler from not complaining about rcsid */
  
   cinfo.err = jpeg_std_error(&jerr.pub);
@@ -160,7 +161,7 @@ int main(int argc, char **argv)
 
   if (!buf || !MD5) no_memory();
   if (argc<2) {
-    if (!quiet_mode) fprintf(stderr,"jpeginfo: file arguments missing\n"
+    if (quiet_mode < 2) fprintf(stderr,"jpeginfo: file arguments missing\n"
 			     "Try 'jpeginfo "
 			     "--help"
 			     "' for more information.\n");
@@ -183,7 +184,7 @@ int main(int argc, char **argv)
         if (!strcmp(optarg,"-")) listfile=stdin;
 	else if ((listfile=fopen(optarg,"r"))==NULL) {
 	  fprintf(stderr,"Cannot open file '%s'.\n",optarg);
-	  exit(1);
+	  exit(2);
 	}
 	input_from_file=1;
 	break;
@@ -204,7 +205,7 @@ int main(int argc, char **argv)
       p_usage();
       break;
     case 'q':
-      quiet_mode=1;
+      quiet_mode++;
       break;
     case 'l':
       list_mode=1;
@@ -242,8 +243,8 @@ int main(int argc, char **argv)
    if (setjmp(jerr.setjmp_buffer)) {
       jpeg_abort_decompress(&cinfo);
       fclose(infile);
-      if (list_mode) printf(" %s",current);
-      printf(" [ERROR]\n");
+      if (list_mode && quiet_mode < 2) printf(" %s",current);
+      if (quiet_mode < 2) printf(" [ERROR]\n");
       if (delete_mode) delete_file(current,verbose_mode,quiet_mode);
       continue;
    }
@@ -274,39 +275,38 @@ int main(int argc, char **argv)
      free(md5buf);
    }
 
-   if (!list_mode) printf("%s ",current);
+   if (!list_mode && quiet_mode < 2) printf("%s ",current);
 
    global_error_counter=0;
    err_count=jerr.pub.num_warnings;
    jpeg_stdio_src(&cinfo, infile);
    jpeg_read_header(&cinfo, TRUE); 
 
-   printf("%4d x %-4d %2dbit ",(int)cinfo.image_width,
+   if (quiet_mode < 2) {
+     printf("%4d x %-4d %2dbit ",(int)cinfo.image_width,
             (int)cinfo.image_height,(int)cinfo.num_components*8);
 
 
-   if (cinfo.saw_Adobe_marker) printf("Adobe ");
-   else if (cinfo.saw_JFIF_marker) printf("JFIF  ");
-   else printf("n/a   ");
+     if (cinfo.saw_Adobe_marker) printf("Adobe ");
+     else if (cinfo.saw_JFIF_marker) printf("JFIF  ");
+     else printf("n/a   ");
 
-   if (longinfo_mode) {
-     printf("%s %s",(cinfo.progressive_mode?"Progressive":"Normal"),
-	    (cinfo.arith_code?"Arithmetic":"Huffman") );
+     if (longinfo_mode) {
+       printf("%s %s",(cinfo.progressive_mode?"Progressive":"Normal"),
+	      (cinfo.arith_code?"Arithmetic":"Huffman") );
 
-     if (cinfo.density_unit==1||cinfo.density_unit==2) 
-       printf(",%ddp%c",MIN(cinfo.X_density,cinfo.Y_density),
-	      (cinfo.density_unit==1?'i':'c') );
+       if (cinfo.density_unit==1||cinfo.density_unit==2) 
+	 printf(",%ddp%c",MIN(cinfo.X_density,cinfo.Y_density),
+		(cinfo.density_unit==1?'i':'c') );
      
-     if (cinfo.CCIR601_sampling) printf(",CCIR601");
+       if (cinfo.CCIR601_sampling) printf(",CCIR601");
+       printf(" %7ld ",fs);
 
-     printf(" %7ld ",fs);
+     } else printf("%c %7ld ",(cinfo.progressive_mode?'P':'N'),fs);
 
-   } else printf("%c %7ld ",(cinfo.progressive_mode?'P':'N'),fs);
-
-
-   if (md5_mode) printf("%s ",digest_text);
-   
-   if (list_mode) printf("%s ",current);
+     if (md5_mode) printf("%s ",digest_text);
+     if (list_mode) printf("%s ",current);
+   }
 
    if (check_mode) {
      cinfo.out_color_space=JCS_GRAYSCALE; /* to speed up the process... */
@@ -326,15 +326,17 @@ int main(int argc, char **argv)
      jpeg_finish_decompress(&cinfo);
      for(j=0;j<BUF_LINES;j++) free(buf[j]);
 
-     if (!global_error_counter) printf(" [OK]\n");
+     if (!global_error_counter) {
+       if (quiet_mode < 2) printf(" [OK]\n");
+     }
      else {
-       printf(" [WARNING]\n");
+       if (quiet_mode < 2) printf(" [WARNING]\n");
        if (delete_mode && !del_mode) 
 	 delete_file(current,verbose_mode,quiet_mode);
      }
    }
    else { /* !check_mode */
-     printf("\n"); 
+     if (quiet_mode < 2) printf("\n"); 
      jpeg_abort_decompress(&cinfo);
    }
 
@@ -343,13 +345,11 @@ int main(int argc, char **argv)
   } while (++i<argc || input_from_file);
 
   jpeg_destroy_decompress(&cinfo);
-  return 0;
+  free(buf);
+  free(MD5);
+
+  return (global_total_errors>0?1:0); /* return 1 if any errors found file(s)
+					 we checked */
 }
 
-
-
-
-
-
-
-
+/* :-) */

@@ -3,8 +3,6 @@
  * Copyright (c) Timo Kokkonen, 1997.
  */
 
-#include "md5/global.h"
-#include "md5/md5.h"
 
 
 #define MIN(a,b) (a<b?a:b)

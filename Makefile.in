@@ -1,37 +1,52 @@
 #########################################################################
-#
-# Makefile for jpeginfo for *nix environments
-#
+# $Id$ 
+# 
+# Makefile for jpeginfo 
 #
 Version = 1.4
 PKGNAME = jpeginfo
 
-# Compile Options:
-#  -DLINUX    for Linux
-#  -DSUN      for Solaris
-#  -DSGI      for Silicon Graphics
-#  -DHPUX     for HP-UX
-#
-#  -DLONG_OPTIONS  if you have GNU getopt_long function
-#
-DEFINES = -DLINUX -DLONG_OPTIONS
+SHELL = /bin/sh
 
-PREFIX  = /usr/local
-BINDIR  = $(PREFIX)/bin
-MANDIR  = $(PREFIX)/man/man1
+DEFS = @DEFS@
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+# Where to install the executables.
+bindir = $(exec_prefix)/bin
+
+# Where to put libraries
+libdir = $(prefix)/lib
+
+# Where to put the Info files
+infodir = $(prefix)/info
+
+# Where to put the manual pages.
+mandir = $(prefix)/man
+
+
 USER	= root
 GROUP	= root
 
-# if necessary define where jpeglib and it's headers are located
-#LIBDIR  = -L/usr/local/lib
-#INCDIR  = -I/usr/local/include
+
+INCLUDES = -I. @includeopt@
+
+CC     = @CC@
+CFLAGS = @CFLAGS@
+LDFLAGS= @LDFLAGS@
+LIBS   = @LIBS@
+STRIP  = @STRIP@
 
 
-CC     = gcc
-CFLAGS = -O2 $(DEFINES) $(INCDIR)  # -N
-LIBS   = -ljpeg $(LIBDIR)
-STRIP  = strip
+INSTALL = @INSTALL@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
 
+@SET_MAKE@
 
 # should be no reason to modify lines below this
 #########################################################################
@@ -39,7 +54,7 @@ STRIP  = strip
 DIRNAME = $(shell basename `pwd`) 
 DISTNAME  = $(PKGNAME)-$(Version)
 
-OBJS = $(PKGNAME).o misc.o md5/md5c.o
+OBJS = $(PKGNAME).o misc.o md5.o
 
 $(PKGNAME):	$(OBJS) 
 	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LIBS) 

@@ -10,15 +10,18 @@
  * to compile type: gcc -O6 -o jpeginfo jpeginfo.c -ljpeg
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef HPUX
+#ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
 #include <string.h>
-#include <jpeglib.h>
 #include <setjmp.h>
+#include <jpeglib.h>
 
+#include "md5.h"
 #include "jpeginfo.h"
 
 
@@ -28,6 +31,10 @@
 #ifdef SGI
 #undef METHODDEF
 #define METHODDEF(x) static x
+#endif
+
+#ifdef HAVE_GETOPT_LONG
+#define LONG_OPTIONS
 #endif
 
 

@@ -2,11 +2,13 @@
  * $Id$
  * 
  * JPEGinfo 
- * Copyright (c) Timo Kokkonen, 1995-1998.
+ * Copyright (c) Timo Kokkonen, 1995-2002.
  *
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
 
 #include <stdio.h>
 #if HAVE_GETOPT_H && HAVE_GETOPT_LONG
@@ -23,7 +25,7 @@
 #include "jpeginfo.h"
 
 
-#define VERSION     "1.5"
+#define VERSION     "1.6.0b"
 #define BUF_LINES   200
 
 #ifndef HOST_TYPE
@@ -93,16 +95,15 @@ my_output_message (j_common_ptr cinfo)
 
 void no_memory(void)
 {
-  if (!quiet_mode) fprintf(stderr,"jpeginfo: not enough memory.\n");
-  exit(3);
+  fatal("not enough memory");
 }
 
 
 void p_usage(void) 
 {
  if (!quiet_mode) {
-  fprintf(stderr,"jpeginfo " VERSION
-	  " Copyright (c) Timo Kokkonen, 1995-1998.\n"); 
+  fprintf(stderr,"jpeginfo v" VERSION
+	  " Copyright (c) Timo Kokkonen, 1995-2002.\n"); 
 
   fprintf(stderr,
        "Usage: jpeginfo [options] <filenames>\n\n"
@@ -171,7 +172,7 @@ int main(int argc, char **argv)
   /* parse command line parameters */
   while(1) {
     opt_index=0;
-    if ((c=getopt_long(argc,argv,"livdchqm:f:5",long_options,&opt_index))==-1) 
+    if ((c=getopt_long(argc,argv,"livVdchqm:f:5",long_options,&opt_index))==-1) 
       break;
     switch (c) {
     case 'm':
@@ -192,8 +193,8 @@ int main(int argc, char **argv)
       verbose_mode=1;
       break;
     case 'V':
-      fprintf(stderr,"jpeginfo " VERSION "  " HOST_TYPE 
-	      "\nCopyright (c) Timo Kokkonen, 1995-1998.\n"); 
+      fprintf(stderr,"jpeginfo v" VERSION "  " HOST_TYPE 
+	      "\nCopyright (c) Timo Kokkonen, 1995-2002.\n"); 
       exit(0);
     case 'd':
       delete_mode=1;

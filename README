@@ -1,0 +1,53 @@
+
+Jpeginfo v1.4  Copyright (c)  Timo Kokkonen, 1995-1997.
+
+
+REQUIREMENTS
+	jpeglib, Independent JPEG Group's jpeg library version 6a or
+        later (jpegsrc.v6a.tar.gz)
+
+TESTED PLATFORMS
+	Linux
+	Solaris
+        IRIX 5.3
+	HP-UX
+
+INSTALLATION
+	Installation should be very straightforward, just unpack the
+	tar file, make nesessary changes to the Makefile,  and then 
+        compile the program. You may wanna do something like this:
+
+		zcat jpeginfo-1.4.tar.gz | tar xf -
+		cd jpeginfo
+		<make necessary changes to makefile>
+		make clean
+		make
+		make strip
+		make install
+
+
+HISTORY
+	v1.4   - added support for calculating MD5 checksums.
+	v1.3   - alternative listing format (-l switch) added.
+	         new column on reports displaying wether jpeg is 
+		 progressive or normal (P/N).
+		 new switch -i for printing out even more information
+	         about pictures: coding, density, CCIR601 sampling.
+	         new switch -f for passing filenames to program from
+	         file or stdin.
+	v1.2   - improved support for other platforms, minor fixes
+        v1.1.2 - small fixes, improvements to Makefile
+	v1.1   - modified to use Independent JPEG Group's new v.6a library,
+		 minor fixes.
+	v1.0   - first public release
+
+
+LATEST VERSION
+
+	Latest version is always available from:
+		http://www.jyu.fi/~tjko/projects.html
+
+
+
+Timo <tjko@jyu.fi>
+19-Aug-1997

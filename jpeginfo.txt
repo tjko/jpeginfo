@@ -1,0 +1,132 @@
+
+
+
+JPEGINFO(1)                                           JPEGINFO(1)
+
+
+NAME
+       jpeginfo  -  prints  information  and  tests  integrity of
+       JPEG/JFIF files.
+
+
+SYNOPSIS
+       jpeginfo [ options ] [ filenames ]
+
+
+DESCRIPTION
+       jpeginfo is used to generate informative listings of  jpeg
+       files,  and  also  to check jpeg files for errors. Program
+       also supports automatic deletion of broken jpegs.
+
+
+
+OPTIONS
+       Options may be either the  traditional  POSIX  one  letter
+       options,  or  the  GNU  style  long  options.  POSIX style
+       options start with a single ``-'', while GNU long  options
+       start with ``--''.
+
+       Options offered by jpeginfo are the following:
+
+       -c, --check
+             Check  files  also  for  errors. (default is just to
+             read the headers).
+
+       -d, --delete
+             Delete files that have errors. (default  is  not  to
+             delete any files).
+
+       -f<filename>, --file<filename>
+             Read  filenames  to  process from given file. To use
+             standard input (stdin) use '-' as a  filename.  This
+             is  alternative to default where filenames are given
+             as parameters to the program.
+
+       -h, --help
+             Display short usage information and exits.
+
+       -5, --md5
+             Calculates MD5 checksum for each file. Exact  speci-
+             fication  of  the  "RSA Data Security, Inc. MD5 Mes-
+             sage-Digest Algorithm" is in RFC 1321.
+
+       -i, --info
+             Displays even more information about  each  picture.
+             Prints  image  coding  (Huffman/Arithmetic), density
+             (in dpi/dpc), and whether CCIR601 sampling was  used
+             or not.
+
+       -l, --lsstyle
+             Uses alternate listing format (ls -l style).
+
+
+
+                           19 Aug 1997                          1
+
+
+
+
+
+JPEGINFO(1)                                           JPEGINFO(1)
+
+
+       -v, --verbose
+             Enables verbose mode (positively chatty).
+
+       -q, --quiet
+             Quiet mode, output just the jpeg infos.
+
+       -m<mode>, --mode=<mode>
+             Sets the delete mode, meaningful only when used with
+             -d flag.  Mode can be one of the following:
+
+             all    files containing any type of errors/warnings,
+                    not   nessessary   preventing  the  decoding.
+                    (default)
+
+             erronly
+                    only files with serious errors (ie. cannot be
+                    decoded at all).
+
+
+
+BUGS
+       None, so far :-)
+
+
+SEE ALSO
+       jpegoptim(1)
+
+
+AUTHOR
+       Timo Kokkonen (tjko@jyu.fi)
+
+
+COPYING
+       Copyright (C) 1996,1997  Timo Kokkonen
+
+       This  program  is  free  software; you can redistribute it
+       and/or modify it under the terms of the GNU General Public
+       License  as  published  by  the  Free Software Foundation;
+       either version 2 of the License, or (at your  option)  any
+       later version.
+        This  program  is distributed in the hope that it will be
+       useful, but WITHOUT ANY WARRANTY; without even the implied
+       warranty  of  MERCHANTABILITY  or FITNESS FOR A PARTICULAR
+       PURPOSE.  See the GNU  General  Public  License  for  more
+       details.
+        You should have received a copy of the GNU General Public
+       License along with this program; if not, write to the Free
+       Software  Foundation,  Inc.,  675  Mass Ave, Cambridge, MA
+       02139, USA.
+
+
+
+
+
+
+
+
+                           19 Aug 1997                          2
+
+

@@ -1,0 +1,103 @@
+.TH JPEGINFO 1 "19 Aug 1997" 
+.UC 4 
+.SH NAME 
+jpeginfo \- prints
+information and tests integrity of JPEG/JFIF files.  
+
+.SH SYNOPSIS 
+.B jpeginfo 
+[ 
+.B options 
+] [ 
+.B filenames 
+] 
+
+.SH DESCRIPTION 
+.I jpeginfo
+is used to generate informative listings of jpeg files, and
+also to check jpeg files for errors. Program also supports automatic
+deletion of broken jpegs.
+
+
+.SH OPTIONS
+.PP
+Options may be either the traditional POSIX one letter options, or the
+GNU style long options.  POSIX style options start with a single
+``\-'', while GNU long options start with ``\-\^\-''.
+
+Options offered by
+.I jpeginfo
+are the following:
+.TP 0.6i
+.B -c, --check
+Check files also for errors. (default is just to read the headers).
+.TP 0.6i
+.B -d, --delete
+Delete files that have errors. (default is not to delete any files).
+.TP 0.6i
+.B -f<filename>, --file<filename>
+Read filenames to process from given file. To use standard input (stdin)
+use '-' as a filename. This is alternative to default where filenames
+are given as parameters to the program.
+.TP 0.6i
+.B -h, --help
+Display short usage information and exits.
+.TP 0.6i
+.B -5, --md5
+Calculates MD5 checksum for each file. Exact specification of the 
+"RSA Data Security, Inc. MD5 Message-Digest Algorithm" is in RFC 1321. 
+.TP 0.6i
+.B -i, --info
+Displays even more information about each picture. Prints image coding 
+(Huffman/Arithmetic), density (in dpi/dpc), and whether CCIR601 sampling 
+was used or not.
+.TP 0.6i
+.B -l, --lsstyle
+Uses alternate listing format (ls -l style).
+.TP 0.6i
+.B -v, --verbose
+Enables verbose mode (positively chatty).
+.TP 0.6i
+.B -q, --quiet
+Quiet mode, output just the jpeg infos.
+.TP 0.6i
+.B -m<mode>, --mode=<mode>
+Sets the delete mode, meaningful only when used with 
+.I
+-d
+flag. 
+.I Mode
+can be one of the following:
+.RS
+.TP
+.B all
+files containing any type of errors/warnings, not nessessary preventing 
+the decoding. (default)
+.TP
+.B erronly
+only files with serious errors (ie. cannot be decoded at all).
+
+
+.SH BUGS
+None, so far :-)
+
+.SH "SEE ALSO" 
+jpegoptim(1)
+
+.SH AUTHOR
+Timo Kokkonen (tjko@jyu.fi)
+
+.SH COPYING
+Copyright (C) 1996,1997  Timo Kokkonen
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+ This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+ You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.

@@ -9,12 +9,12 @@
 #include "config.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #if HAVE_GETOPT_H && HAVE_GETOPT_LONG
   #include <getopt.h>
 #else
   #include "getopt.h"
 #endif
+#include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
 #include <jpeglib.h>

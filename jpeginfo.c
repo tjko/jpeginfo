@@ -4,10 +4,6 @@
  * JPEGinfo 
  * Copyright (c) Timo Kokkonen, 1995-1998.
  *
- * requires libjpeg (from JPEG Group's JPEG software 
- *                     release 6a or later...)
- *
- * to compile type: gcc -O6 -o jpeginfo jpeginfo.c -ljpeg
  */
 
 #include "config.h"
@@ -28,7 +24,7 @@
 #define VERSION     "1.5beta"
 #define BUF_LINES   200
 
-#ifdef SGI
+#ifdef BROKEN_METHODDEF
 #undef METHODDEF
 #define METHODDEF(x) static x
 #endif
@@ -103,7 +99,7 @@ void p_usage(void)
 {
  if (!quiet_mode) {
   fprintf(stderr,"jpeginfo " VERSION
-	  " Copyright (c) Timo Kokkonen, 1995-1997.\n"); 
+	  " Copyright (c) Timo Kokkonen, 1995-1998.\n"); 
 
   fprintf(stderr,
        "Usage: jpeginfo [options] <filenames>\n\n"

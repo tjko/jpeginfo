@@ -1,4 +1,6 @@
-/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* config.h.in. 
+ * $Id$
+ *
 
 /* Define if you have the ANSI C header files.  */
 #undef STDC_HEADERS
@@ -20,3 +22,9 @@
 
 /* Define if you have the jpeg library (-ljpeg).  */
 #undef HAVE_LIBJPEG
+
+
+
+/* Define if you have broken jmorecfg.h (SGI's usually have this problem) */
+#undef BROKEN_METHODDEF
+

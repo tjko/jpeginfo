@@ -3,7 +3,7 @@
 # 
 # Makefile for jpeginfo 
 #
-Version = 1.4
+Version = 1.5b
 PKGNAME = jpeginfo
 
 SHELL = /bin/sh
@@ -39,7 +39,7 @@ CC     = @CC@
 CFLAGS = @CFLAGS@
 LDFLAGS= @LDFLAGS@
 LIBS   = @LIBS@
-STRIP  = @STRIP@
+STRIP  = strip
 
 
 INSTALL = @INSTALL@
@@ -65,25 +65,23 @@ strip:
 	for i in $(PKGNAME) ; do [ -x $i ] && $(STRIP) $$i ; done
 
 clean:
-	rm -f *~ *.o core a.out make.log $(PKGNAME) $(OBJS)
+	rm -f *~ *.o core a.out make.log Makefile config.h config.log config.cache config.status \#*\# $(PKGNAME) $(OBJS)
 
 dist:	clean
 	(cd .. ; tar cvzf $(DISTNAME).tar.gz $(DIRNAME))
 
 backup:	dist
 
-zip:	clean	
-	(cd .. ; zip -r9 $(DISTNAME).zip $(DIRNAME))
 
 install: all  install.man
-	install -m 755 -o $(USER) -g $(GROUP) $(PKGNAME) $(BINDIR)
+	$(INSTALL) -m 755 $(PKGNAME) $(bindir)/$(PKGNAME)
 
 printable.man:
 	groff -Tps -mandoc ./$(PKGNAME).1 >$(PKGNAME).ps
 	groff -Tascii -mandoc ./$(PKGNAME).1 | tee $(PKGNAME).prn | sed 's/.//g' >$(PKGNAME).txt
 
 install.man:
-	install -m 644 -o $(USER) -g $(GROUP) $(PKGNAME).1 $(MANDIR)
+	$(INSTALL) -m 644 $(PKGNAME).1 $(mandir)/$(PKGNAME).1
 
 # a tradition !
 love:	

@@ -111,7 +111,8 @@ my_output_message (j_common_ptr cinfo)
 
 void no_memory(void)
 {
-  fatal("not enough memory");
+  fprintf(stderr,"jpeginfo: not enough memory!\n");
+  exit(3);
 }
 
 

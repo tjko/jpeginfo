@@ -1,5 +1,5 @@
 
-Jpeginfo v1.4  Copyright (c)  Timo Kokkonen, 1995-1997.
+Jpeginfo v1.5  Copyright (c)  Timo Kokkonen, 1995-1998.
 
 
 REQUIREMENTS
@@ -9,7 +9,7 @@ REQUIREMENTS
 TESTED PLATFORMS
 	Linux
 	Solaris
-        IRIX 5.3
+        IRIX
 	HP-UX
 
 INSTALLATION
@@ -17,16 +17,21 @@ INSTALLATION
 	tar file, make nesessary changes to the Makefile,  and then 
         compile the program. You may wanna do something like this:
 
-		zcat jpeginfo-1.4.tar.gz | tar xf -
+		gunzip -c jpeginfo-1.5.tar.gz | tar xf -
 		cd jpeginfo
-		<make necessary changes to makefile>
-		make clean
+		./configure
 		make
 		make strip
 		make install
 
+	NOTE! if 'configure' cannot find libjpeg.a or jpeglib.h, then
+	you must use the --with-jpeglib option when running configure.
+
 
 HISTORY
+	v1.5   - configuration is now done with GNU autoconf, 
+		 now uses free MD5 algorithm,
+		 added new fields on reports: filesize
 	v1.4   - added support for calculating MD5 checksums.
 	v1.3   - alternative listing format (-l switch) added.
 	         new column on reports displaying wether jpeg is 
@@ -50,4 +55,4 @@ LATEST VERSION
 
 
 Timo <tjko@jyu.fi>
-19-Aug-1997
+14-Jan-1998

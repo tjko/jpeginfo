@@ -28,3 +28,4 @@
 /* Define if you have broken jmorecfg.h (SGI's usually have this problem) */
 #undef BROKEN_METHODDEF
 
+#undef HOST_TYPE

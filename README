@@ -25,7 +25,8 @@ INSTALLATION
 		make install
 
 	NOTE! if 'configure' cannot find libjpeg.a or jpeglib.h, then
-	you must use the --with-jpeglib option when running configure.
+	you must use the --with-jpeglib option when running configure,
+	see 'configure --help'.
 
 
 HISTORY

@@ -26,13 +26,13 @@
 #define VERSION     "1.5beta"
 #define BUF_LINES   200
 
+#ifndef HOST_TYPE
+#define HOST_TYPE ""
+#endif
+
 #ifdef BROKEN_METHODDEF
 #undef METHODDEF
 #define METHODDEF(x) static x
-#endif
-
-#ifdef HAVE_GETOPT_LONG
-#define LONG_OPTIONS
 #endif
 
 
@@ -48,7 +48,7 @@ typedef struct my_error_mgr * my_error_ptr;
 struct jpeg_decompress_struct cinfo;
 struct my_error_mgr jerr;
 
-#ifdef LONG_OPTIONS
+
 struct option long_options[] = {
   {"verbose",0,0,'v'},
   {"delete",0,0,'d'},
@@ -60,9 +60,10 @@ struct option long_options[] = {
   {"lsstyle",0,0,'l'},
   {"info",0,0,'i'},
   {"md5",0,0,'5'},
+  {"version",0,0,'V'},
   {0,0,0,0}
 };
-#endif
+
 
 int global_error_counter;
 int verbose_mode = 0;
@@ -105,7 +106,6 @@ void p_usage(void)
 
   fprintf(stderr,
        "Usage: jpeginfo [options] <filenames>\n\n"
-#ifdef LONG_OPTIONS
        "  -c, --check     check files also for errors\n"
        "  -d, --delete    delete files that have errors\n"
        "  -f<filename>,  --file<filename>\n"
@@ -119,19 +119,6 @@ void p_usage(void)
        "  -q, --quiet     quiet mode, output just jpeg infos\n"
        "  -m<mode>, --mode=<mode>\n"
        "                  defines which jpegs to remove (when using"
-#else
-       "  -c              check files also for errors\n"
-       "  -d              delete files that have errors\n"
-       "  -f<filename>    read the filenames to process from given file\n"
-       "                  (for standard input use '-' as a filename)\n"
-       "  -h              display this help and exit\n"
-       "  -5              calculate MD5 checksum for each file\n"  
-       "  -i              display even more information about pictures\n"
-       "  -l              use alternate listing format (ls -l style)\n"
-       "  -v              enable verbose mode (positively chatty)\n"
-       "  -q              quiet mode, output just jpeg infos\n"
-       "  -m<mode>        defines which jpegs to remove (when using"
-#endif
 	                 " the -d option).\n"
        "                  Mode can be one of the following:\n"
        "                    erronly     only files with serious errrors\n"
@@ -175,11 +162,7 @@ int main(int argc, char **argv)
   if (argc<2) {
     if (!quiet_mode) fprintf(stderr,"jpeginfo: file arguments missing\n"
 			     "Try 'jpeginfo "
-#ifdef LONG_OPTIONS
 			     "--help"
-#else
-			     "-h"
-#endif
 			     "' for more information.\n");
     exit(1);
   }
@@ -187,11 +170,7 @@ int main(int argc, char **argv)
   /* parse command line parameters */
   while(1) {
     opt_index=0;
-#ifdef LONG_OPTIONS
     if ((c=getopt_long(argc,argv,"livdchqm:f:5",long_options,&opt_index))==-1) 
-#else
-    if ((c=getopt(argc,argv,"livdchqm:f:5"))==-1) 
-#endif
       break;
     switch (c) {
     case 'm':
@@ -211,6 +190,10 @@ int main(int argc, char **argv)
     case 'v':
       verbose_mode=1;
       break;
+    case 'V':
+      fprintf(stderr,"jpeginfo " VERSION "  " HOST_TYPE 
+	      "\nCopyright (c) Timo Kokkonen, 1995-1998.\n"); 
+      exit(0);
     case 'd':
       delete_mode=1;
       break;

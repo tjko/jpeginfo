@@ -158,7 +158,7 @@ int main(int argc, char **argv)
   MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
   volatile int i;
   int c,j,lines_read, err_count;
-  char ch;
+  unsigned char ch;
   char namebuf[1024];
   long fs;
   char *md5buf,digest[16],digest_text[33];

@@ -32,7 +32,7 @@ mandir = $(prefix)/man
 
 CC        = @CC@ 
 XCPPFLAGS = @CPPFLAGS@
-CFLAGS    = @CFLAGS@ $(XCPPFLAGS)
+CFLAGS    = @CFLAGS@ $(XCPPFLAGS) $(DEFS)
 LDFLAGS   = @LDFLAGS@
 LIBS      = @LIBS@
 STRIP     = strip

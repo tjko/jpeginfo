@@ -14,8 +14,8 @@ TESTED PLATFORMS
 
 INSTALLATION
 	Installation should be very straightforward, just unpack the
-	tar file, make nesessary changes to the Makefile,  and then 
-        compile the program. You may wanna do something like this:
+	tar file, run configure script, and then compile the program. 
+	You may wanna do something like this:
 
 		gunzip -c jpeginfo-1.5.tar.gz | tar xf -
 		cd jpeginfo
@@ -31,8 +31,13 @@ INSTALLATION
 
 HISTORY
 	v1.5   - configuration is now done with GNU autoconf, 
-		 now uses free MD5 algorithm,
-		 added new fields on reports: filesize
+		 program now uses free MD5 algorithm,
+		 added filesize as new field on reports,
+		 program now returns exitcode 1 if one or more of the jpegs
+		 had any errors, useful for testing if particular jpeg is
+	         ok from shell scripts, 
+	         also if you specify -q (--quiet) option twice on
+		 command line, then program won't produce any output.
 	v1.4   - added support for calculating MD5 checksums.
 	v1.3   - alternative listing format (-l switch) added.
 	         new column on reports displaying wether jpeg is 

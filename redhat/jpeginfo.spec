@@ -1,6 +1,6 @@
 Summary: Utility for optimizing/compressing JPEG files.
 Name: jpeginfo
-Version: 1.6.0
+Version: 1.6.1
 Release: 1
 License: GPL
 Group: Applications/Multimedia

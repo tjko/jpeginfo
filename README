@@ -1,13 +1,14 @@
 
-Jpeginfo v1.6.0  Copyright (c)  Timo Kokkonen, 1995-2002.
+Jpeginfo v1.6.1  Copyright (c)  Timo Kokkonen, 1995-2009.
 
 
 REQUIREMENTS
 	jpeglib, Independent JPEG Group's jpeg library version 6a or
-        later (jpegsrc.v6a.tar.gz)
+        version 7 (or later version)
 
 TESTED PLATFORMS
 	Linux
+        OS X (Snow Leopard)
 	Solaris
         IRIX
 	HP-UX
@@ -30,6 +31,8 @@ INSTALLATION
 
 
 HISTORY
+	v1.6.1 - support for new libjpeg v7 thanks to Guido Vollbeding,
+		 fix to display of 8bit characters by Pierre Jarillon
 	v1.6.0 - added support for printing out Comments (from COM
 	         markers), Exif format images are now also recognized
 	         (no Exif marker decoding functionality, though).
@@ -64,4 +67,4 @@ LATEST VERSION
 
 
 Timo <tjko@iki.fi>
-10-Dec-2002
+11-Oct-2009

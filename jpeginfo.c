@@ -2,7 +2,7 @@
  * $Id$
  * 
  * JPEGinfo 
- * Copyright (c) Timo Kokkonen, 1995-2002.
+ * Copyright (c) Timo Kokkonen, 1995-2009.
  *
  */
 
@@ -26,7 +26,7 @@
 #include "jpeginfo.h"
 
 
-#define VERSION     "1.6.0"
+#define VERSION     "1.6.1"
 #define BUF_LINES   255
 
 #ifndef HOST_TYPE
@@ -120,7 +120,7 @@ void p_usage(void)
 {
  if (!quiet_mode) {
   fprintf(stderr,"jpeginfo v" VERSION
-	  " Copyright (c) Timo Kokkonen, 1995-2002.\n"); 
+	  " Copyright (c) Timo Kokkonen, 1995-2009.\n"); 
 
   fprintf(stderr,
        "Usage: jpeginfo [options] <filenames>\n\n"
@@ -355,6 +355,7 @@ int main(int argc, char **argv)
    if (check_mode) {
      cinfo.out_color_space=JCS_GRAYSCALE; /* to speed up the process... */
      cinfo.scale_denom = 8;
+     cinfo.scale_num = 1;
      jpeg_start_decompress(&cinfo);
  
      for (j=0;j<BUF_LINES;j++) {

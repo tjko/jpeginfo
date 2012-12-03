@@ -161,7 +161,8 @@ int main(int argc, char **argv)
   unsigned char ch;
   char namebuf[1024];
   long fs;
-  char *md5buf,digest[16],digest_text[33];
+  unsigned char *md5buf,digest[16];
+  char digest_text[33];
   
   global_total_errors=0;
   if (rcsid); /* to keep compiler from not complaining about rcsid */

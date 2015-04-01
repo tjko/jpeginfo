@@ -7,6 +7,8 @@ Group: Applications/Multimedia
 URL: http://www.iki.fi/tjko/projects.html
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
+BuildRequires: libjpeg-turbo-devel
+Requires: libjpeg-turbo
 
 %description
 Jpeginfo prints information and tests integrity of JPEG/JFIF

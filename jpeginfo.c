@@ -266,7 +266,7 @@ int main(int argc, char **argv)
       continue;
    }
 
-   if ((infile=fopen(current,"r"))==NULL) {
+   if ((infile=fopen(current,"rb"))==NULL) {
      if (!quiet_mode) fprintf(stderr, "jpeginfo: can't open '%s'\n", current);
      continue;
    }

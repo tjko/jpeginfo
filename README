@@ -1,5 +1,5 @@
 
-Jpeginfo v1.6.1  Copyright (c)  Timo Kokkonen, 1995-2009.
+Jpeginfo v1.6.2beta  Copyright (c)  Timo Kokkonen, 1995-2020.
 
 
 REQUIREMENTS
@@ -31,6 +31,7 @@ INSTALLATION
 
 
 HISTORY
+	v1.6.2 - umproved Win32 support thanks to Joachim Schrod.
 	v1.6.1 - support for new libjpeg v7 thanks to Guido Vollbeding,
 		 fix to display of 8bit characters by Pierre Jarillon
 	v1.6.0 - added support for printing out Comments (from COM
@@ -67,4 +68,4 @@ LATEST VERSION
 
 
 Timo <tjko@iki.fi>
-11-Oct-2009
+01-Aug-2020

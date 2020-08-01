@@ -26,7 +26,7 @@
 #include "jpeginfo.h"
 
 
-#define VERSION     "1.6.1"
+#define VERSION     "1.6.2beta"
 #define BUF_LINES   255
 
 #ifndef HOST_TYPE

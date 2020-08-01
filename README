@@ -18,8 +18,8 @@ INSTALLATION
 	tar file, run configure script, and then compile the program. 
 	You may wanna do something like this:
 
-		gunzip -c jpeginfo-1.6.0.tar.gz | tar xf -
-		cd jpeginfo-1.6.0
+		gunzip -c jpeginfo-1.6.2.tar.gz | tar xf -
+		cd jpeginfo-1.6.2
 		./configure
 		make
 		make strip

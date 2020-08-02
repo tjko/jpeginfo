@@ -31,7 +31,7 @@ INSTALLATION
 
 
 HISTORY
-	v1.6.2 - umproved Win32 support thanks to Joachim Schrod.
+	v1.6.2 - improved Win32 support thanks to tumagonx
 	v1.6.1 - support for new libjpeg v7 thanks to Guido Vollbeding,
 		 fix to display of 8bit characters by Pierre Jarillon
 	v1.6.0 - added support for printing out Comments (from COM

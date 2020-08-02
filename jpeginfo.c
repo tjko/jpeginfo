@@ -375,6 +375,7 @@ int main(int argc, char **argv)
 
      jpeg_finish_decompress(&cinfo);
      for(j=0;j<BUF_LINES;j++) free(buf[j]);
+     fclose(infile);
 
      if (!global_error_counter) {
        if (quiet_mode < 2) printf(" [OK]\n");
@@ -388,9 +389,9 @@ int main(int argc, char **argv)
    else { /* !check_mode */
      if (quiet_mode < 2) printf("\n"); 
      jpeg_abort_decompress(&cinfo);
+     fclose(infile);
    }
 
-   fclose(infile);
 
   } while (++i<argc || input_from_file);
 

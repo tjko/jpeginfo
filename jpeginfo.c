@@ -120,7 +120,7 @@ void p_usage(void)
 {
  if (!quiet_mode) {
   fprintf(stderr,"jpeginfo v" VERSION
-	  " Copyright (c) Timo Kokkonen, 1995-2009.\n"); 
+	  " Copyright (c) Timo Kokkonen, 1995-2020.\n"); 
 
   fprintf(stderr,
        "Usage: jpeginfo [options] <filenames>\n\n"
@@ -157,12 +157,13 @@ int main(int argc, char **argv)
   jpeg_saved_marker_ptr exif_marker, cmarker;
   MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
   volatile int i;
-  int c,j,lines_read, err_count;
+  int c, j;
   unsigned char ch;
   char namebuf[1024];
   long fs;
-  unsigned char *md5buf,digest[16];
+  unsigned char *md5buf, digest[16];
   char digest_text[33];
+  size_t last_read;
   
   global_total_errors=0;
   if (rcsid); /* to keep compiler from not complaining about rcsid */
@@ -281,7 +282,11 @@ int main(int argc, char **argv)
    if (md5_mode) {
      md5buf=malloc(fs);
      if (!md5buf) no_memory();
-     fread(md5buf,1,fs,infile);
+     last_read = fread(md5buf,1,fs,infile);
+     if (last_read < fs) {
+	     fprintf(stderr, "jpeginfo: failed to read entire file: %s\n", current);
+	     continue;
+     }
      rewind(infile);
      
      MD5Init(MD5);
@@ -295,7 +300,6 @@ int main(int argc, char **argv)
    if (!list_mode && quiet_mode < 2) printf("%s ",current);
 
    global_error_counter=0;
-   err_count=jerr.pub.num_warnings;
    if (com_mode) jpeg_save_markers(&cinfo, JPEG_COM, 0xffff);
    jpeg_save_markers(&cinfo, EXIF_JPEG_MARKER, 0xffff);
    jpeg_stdio_src(&cinfo, infile);
@@ -366,7 +370,7 @@ int main(int argc, char **argv)
      }
 
      while (cinfo.output_scanline < cinfo.output_height) {
-       lines_read = jpeg_read_scanlines(&cinfo, buf,BUF_LINES);
+       jpeg_read_scanlines(&cinfo, buf,BUF_LINES);
      }
 
      jpeg_finish_decompress(&cinfo);
@@ -387,7 +391,7 @@ int main(int argc, char **argv)
    }
 
    fclose(infile);
-  
+
   } while (++i<argc || input_from_file);
 
   jpeg_destroy_decompress(&cinfo);

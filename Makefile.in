@@ -33,6 +33,8 @@ mandir = $(prefix)/share/man
 CC        = @CC@ 
 XCPPFLAGS = @CPPFLAGS@
 CFLAGS    = @CFLAGS@ $(XCPPFLAGS) $(DEFS)
+#CFLAGS	 += -Wall -Wformat -Werror=format-security
+#CFLAGS	 += -fstack-protector --param=ssp-buffer-size=4 -D_FORTIFY_SOURCE=2 -fsanitize=address,undefined
 LDFLAGS   = @LDFLAGS@
 LIBS      = @LIBS@
 STRIP     = strip

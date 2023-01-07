@@ -63,20 +63,20 @@ char *fgetstr(char *s,int n,FILE *stream)
 
 
 
-char *md2str(unsigned char *digest, char *s)
+char *digest2str(unsigned char *digest, char *s, unsigned int len)
 {
   int i;
-  char buf[16],*r;
+  char buf[4], *r;
 
   if (!digest) return NULL;
   if (!s) {
-    s=(char*)malloc(33);
+    s = (char*)malloc(len * 2 + 1);
     if (!s) return NULL;
   }
 
   r=s;
-  for (i = 0; i < 16; i++) {
-    sprintf (buf,"%02x", digest[i]);
+  for (i = 0; i < len; i++) {
+    snprintf(buf, sizeof(buf), "%02x", digest[i]);
     *(s++)=buf[0];
     *(s++)=buf[1];
   }

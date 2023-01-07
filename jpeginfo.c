@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include <jpeglib.h>
 
+#include "sha256/crypto_hash_sha256.h"
 #include "md5.h"
 #include "jpeginfo.h"
 
@@ -64,6 +65,7 @@ static struct option long_options[] = {
   {"lsstyle",0,0,'l'},
   {"info",0,0,'i'},
   {"md5",0,0,'5'},
+  {"sha256",0,0,'2'},
   {"version",0,0,'V'},
   {"comments",0,0,'C'},
   {0,0,0,0}
@@ -84,6 +86,7 @@ int list_mode = 0;
 int longinfo_mode = 0;
 int input_from_file = 0;
 int md5_mode = 0;
+int sha256_mode = 0;
 char *current = NULL;
 
 /*****************************************************************/
@@ -120,7 +123,7 @@ void p_usage(void)
 {
  if (!quiet_mode) {
   fprintf(stderr,"jpeginfo v" VERSION
-	  " Copyright (c) Timo Kokkonen, 1995-2020.\n"); 
+	  " Copyright (c) Timo Kokkonen, 1995-2023.\n");
 
   fprintf(stderr,
        "Usage: jpeginfo [options] <filenames>\n\n"
@@ -131,6 +134,7 @@ void p_usage(void)
        "                  read the filenames to process from given file\n"
        "                  (for standard input use '-' as a filename)\n"
        "  -h, --help      display this help and exit\n"
+       "  -2, --sha256    calculate SHA-256 checksum for each file\n"
        "  -5, --md5       calculate MD5 checksum for each file\n"	  
        "  -i, --info      display even more information about pictures\n"
        "  -l, --lsstyle   use alternate listing format (ls -l style)\n"
@@ -161,8 +165,7 @@ int main(int argc, char **argv)
   unsigned char ch;
   char namebuf[1024];
   long fs;
-  unsigned char *md5buf, digest[16];
-  char digest_text[33];
+  char digest_text[65];
   size_t last_read;
   
   global_total_errors=0;
@@ -185,7 +188,7 @@ int main(int argc, char **argv)
   /* parse command line parameters */
   while(1) {
     opt_index=0;
-    if ( (c=getopt_long(argc,argv,"livVdcChqm:f:5",
+    if ( (c=getopt_long(argc,argv,"livVdcChqm:f:52",
 			long_options,&opt_index))  == -1) 
       break;
     switch (c) {
@@ -207,8 +210,8 @@ int main(int argc, char **argv)
       verbose_mode=1;
       break;
     case 'V':
-      fprintf(stderr,"jpeginfo v" VERSION "  " HOST_TYPE 
-	      "\nCopyright (c) Timo Kokkonen, 1995-2002.\n"); 
+      fprintf(stderr,"jpeginfo v" VERSION "  " HOST_TYPE
+	      "\nCopyright (c) Timo Kokkonen, 1995-2023.\n");
       exit(0);
     case 'd':
       delete_mode=1;
@@ -230,6 +233,9 @@ int main(int argc, char **argv)
       break;
     case '5':
       md5_mode=1;
+      break;
+    case '2':
+      sha256_mode=1;
       break;
     case 'C':
       com_mode=1;
@@ -279,22 +285,28 @@ int main(int argc, char **argv)
 
    fs=filesize(infile);
 
-   if (md5_mode) {
-     md5buf=malloc(fs);
-     if (!md5buf) no_memory();
-     last_read = fread(md5buf,1,fs,infile);
+   if (md5_mode || sha256_mode) {
+     unsigned char *buf, digest[32];
+
+     if ((buf = malloc(fs)) == NULL)
+       no_memory();
+     last_read = fread(buf, 1, fs, infile);
+     rewind(infile);
      if (last_read < fs) {
 	     fprintf(stderr, "jpeginfo: failed to read entire file: %s\n", current);
-	     continue;
+     } else {
+       if (md5_mode) {
+	 MD5Init(MD5);
+	 MD5Update(MD5, buf, fs);
+	 MD5Final(digest, MD5);
+	 digest2str(digest, digest_text, 16);
+       } else {
+	 crypto_hash_sha256(digest, buf, fs);
+	 digest2str(digest, digest_text, 32);
+       }
      }
-     rewind(infile);
      
-     MD5Init(MD5);
-     MD5Update(MD5,md5buf,fs);
-     MD5Final(digest,MD5);
-     md2str(digest,digest_text);
-
-     free(md5buf);
+     free(buf);
    }
 
    if (!list_mode && quiet_mode < 2) printf("%s ",current);
@@ -337,8 +349,8 @@ int main(int argc, char **argv)
 
      } else printf("%c %7ld ",(cinfo.progressive_mode?'P':'N'),fs);
 
-     if (md5_mode) printf("%s ",digest_text);
-     if (list_mode) printf("%s ",current);
+     if (md5_mode || sha256_mode) printf("%s ", digest_text);
+     if (list_mode) printf("%s ", current);
 
      if (com_mode) {
        cmarker=cinfo.marker_list;

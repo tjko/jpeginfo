@@ -52,7 +52,7 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 DIRNAME = $(shell basename `pwd`) 
 DISTNAME  = $(PKGNAME)-$(Version)
 
-OBJS = $(PKGNAME).o misc.o @GNUGETOPT@ md5.o 
+OBJS = $(PKGNAME).o misc.o @GNUGETOPT@ md5.o sha256/hash.o sha256/blocks.o
 
 $(PKGNAME):	$(OBJS) 
 	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LDFLAGS) $(LIBS) 

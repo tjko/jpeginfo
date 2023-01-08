@@ -288,6 +288,10 @@ int main(int argc, char **argv)
 
 	if (!buf || !MD5) no_memory();
 
+	for(i = 0; i < BUF_LINES; i++) {
+		buf[i] = NULL;
+	}
+
 	cinfo.err = jpeg_std_error(&jerr.pub);
 	jpeg_create_decompress(&cinfo);
 	jerr.pub.error_exit=my_error_exit;
@@ -312,6 +316,12 @@ int main(int argc, char **argv)
 
 		if (setjmp(jerr.setjmp_buffer)) {
 			jpeg_abort_decompress(&cinfo);
+			for(j = 0; j < BUF_LINES; j++) {
+				if (buf[j]) {
+					free(buf[j]);
+					buf[j] = NULL;
+				}
+			}
 			fclose(infile);
 			if (list_mode && quiet_mode < 2) printf(" %s", current);
 			if (quiet_mode < 2) printf(" [ERROR]\n");
@@ -423,7 +433,7 @@ int main(int argc, char **argv)
 			cinfo.scale_denom = 8;
 			cinfo.scale_num = 1;
 			jpeg_start_decompress(&cinfo);
- 
+
 			for (j=0;j<BUF_LINES;j++) {
 				buf[j]=malloc(sizeof(JSAMPLE) *
 					cinfo.output_width *
@@ -432,11 +442,14 @@ int main(int argc, char **argv)
 			}
 
 			while (cinfo.output_scanline < cinfo.output_height) {
-				jpeg_read_scanlines(&cinfo, buf,BUF_LINES);
+				jpeg_read_scanlines(&cinfo, buf, BUF_LINES);
 			}
 
 			jpeg_finish_decompress(&cinfo);
-			for(j=0;j<BUF_LINES;j++) free(buf[j]);
+			for(j = 0; j < BUF_LINES; j++) {
+				free(buf[j]);
+				buf[j] = NULL;
+			}
 			fclose(infile);
 
 			if (!global_error_counter) {

@@ -3,6 +3,7 @@
  * Copyright (c) 1997-2023 Timo Kokkonen
  * All Rights Reserved.
  *
+ *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * This file is part of JPEGinfo.
@@ -47,7 +48,7 @@ int is_dir(FILE *fp)
 }
 
 
-long filesize(FILE *fp)
+long long filesize(FILE *fp)
 {
 	struct stat buf;
 
@@ -73,7 +74,7 @@ void delete_file(char *name, int verbose_mode, int quiet_mode)
 }
 
 
-char *fgetstr(char *s,int n,FILE *stream)
+char *fgetstr(char *s, int n, FILE *stream)
 {
 	char *p;
 
@@ -94,25 +95,18 @@ char *fgetstr(char *s,int n,FILE *stream)
 char *digest2str(unsigned char *digest, char *s, unsigned int len)
 {
 	int i;
-	char buf[4], *r;
+	char *r;
 
-	if (!digest)
+	if (!digest || !s)
 		return NULL;
-	if (!s) {
-		s = (char*)malloc(len * 2 + 1);
-		if (!s)
-			return NULL;
-	}
 
-	r=s;
+	r = s;
 	for (i = 0; i < len; i++) {
-		snprintf(buf, sizeof(buf), "%02x", digest[i]);
-		*(s++) = buf[0];
-		*(s++) = buf[1];
+		snprintf(r, 3, "%02x", digest[i]);
+		r += 2;
 	}
-	*s=0;
 
-	return r;
+	return s;
 }
 
 /* eof :-) */

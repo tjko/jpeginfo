@@ -36,6 +36,7 @@
 #include <setjmp.h>
 #include <ctype.h>
 #include <jpeglib.h>
+#include <jerror.h>
 
 #include "sha256/crypto_hash_sha256.h"
 #include "md5.h"
@@ -43,6 +44,8 @@
 
 
 #define VERSION     "1.6.2beta"
+#define COPYRIGHT   "Copyright (C) 1996-2023 Timo Kokkonen"
+
 #define BUF_LINES   255
 
 #ifndef HOST_TYPE
@@ -132,14 +135,38 @@ void no_memory(void)
 }
 
 
-void p_usage(void)
+void print_version()
+{
+	struct jpeg_error_mgr jcerr, *err;
+
+
+#ifdef  __DATE__
+	printf("jpeginfo v%s  %s (%s)\n", VERSION, HOST_TYPE, __DATE__);
+#else
+	printf("jpeginfo v%s  %s\n", VERSION, HOST_TYPE);
+#endif
+	printf(COPYRIGHT "\n\n");
+	printf("This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n"
+		"and you are welcome to redistirbute it under certain conditions.\n"
+		"See the GNU General Public License for more details.\n\n");
+
+	if (!(err=jpeg_std_error(&jcerr))) {
+		fprintf(stderr, "jpeg_std_error() failed\n");
+		exit(1);
+	}
+
+	printf("\nlibjpeg version: %s\n%s\n",
+		err->jpeg_message_table[JMSG_VERSION],
+		err->jpeg_message_table[JMSG_COPYRIGHT]);
+}
+
+
+void print_usage(void)
 {
 	if (quiet_mode)
 		exit(0);
 
-	fprintf(stderr,"jpeginfo v" VERSION
-		" Copyright (c) Timo Kokkonen, 1995-2023.\n");
-
+	fprintf(stderr,"jpeginfo v" VERSION COPYRIGHT "\n");
 	fprintf(stderr,
 		"Usage: jpeginfo [options] <filenames>\n\n"
 		"  -c, --check     check files also for errors\n"
@@ -166,6 +193,7 @@ void p_usage(void)
 
 	exit(0);
 }
+
 
 void parse_args(int argc, char **argv)
 {
@@ -201,8 +229,7 @@ void parse_args(int argc, char **argv)
 			verbose_mode=1;
 			break;
 		case 'V':
-			fprintf(stderr, "jpeginfo v" VERSION "  " HOST_TYPE
-				"\nCopyright (c) Timo Kokkonen, 1995-2023.\n");
+			print_version();
 			exit(0);
 		case 'd':
 			delete_mode=1;
@@ -211,7 +238,7 @@ void parse_args(int argc, char **argv)
 			check_mode=1;
 			break;
 		case 'h':
-			p_usage();
+			print_usage();
 			break;
 		case 'q':
 			quiet_mode++;
@@ -249,18 +276,15 @@ void parse_args(int argc, char **argv)
 /*****************************************************************************/
 int main(int argc, char **argv)
 {
+	MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
 	JSAMPARRAY buf = malloc(sizeof(JSAMPROW)*BUF_LINES);
 	jpeg_saved_marker_ptr exif_marker, cmarker;
-	MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
-	volatile int i;
-	int j;
+	int i,j;
 	unsigned char ch;
 	char namebuf[1024];
 	long fs;
 	char digest_text[65];
 	size_t last_read;
-
-	global_total_errors=0;
 
 	if (!buf || !MD5) no_memory();
 
@@ -308,6 +332,7 @@ int main(int argc, char **argv)
 		fs=filesize(infile);
 
 		if (md5_mode || sha256_mode) {
+			/* calculate hash (message-digest) of the input file */
 			unsigned char *buf, digest[32];
 
 			if ((buf = malloc(fs)) == NULL)
@@ -316,6 +341,7 @@ int main(int argc, char **argv)
 			rewind(infile);
 			if (last_read < fs) {
 				fprintf(stderr, "jpeginfo: failed to read entire file: %s\n", current);
+				digest_text[0] = 0;
 			} else {
 				if (md5_mode) {
 					MD5Init(MD5);

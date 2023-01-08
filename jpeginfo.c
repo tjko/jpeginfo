@@ -43,7 +43,7 @@
 #include "jpeginfo.h"
 
 
-#define VERSION     "1.6.2beta"
+#define VERSION     "1.6.2"
 #define COPYRIGHT   "Copyright (C) 1996-2023 Timo Kokkonen"
 
 #define BUF_LINES   255
@@ -166,7 +166,7 @@ void print_usage(void)
 	if (quiet_mode)
 		exit(0);
 
-	fprintf(stderr,"jpeginfo v" VERSION COPYRIGHT "\n");
+	fprintf(stderr,"jpeginfo v" VERSION " " COPYRIGHT "\n");
 	fprintf(stderr,
 		"Usage: jpeginfo [options] <filenames>\n\n"
 		"  -c, --check     check files also for errors\n"

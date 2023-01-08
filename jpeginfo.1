@@ -18,6 +18,54 @@ is used to generate informative listings of jpeg files, and
 also to check jpeg files for errors. Program also supports automatic
 deletion of broken jpegs.
 
+.SS Default Format
+.PP
+Default output format:
+
+<filename> <image_width> x <image_height> <colordepth> <image_type> <progresive_vs_normal> <size>
+
+Example:
+.PP
+.RS 0
+IMG_6387.jpeg 4032 x 3024 24bit JFIF  N 2416729
+.RS 0
+IMG_6806.jpeg 4032 x 3024 24bit Exif  N 2510587
+.RS 0
+
+.SS Extra information format
+.PP
+Additional information can be displayed usign
+.I -i
+option:
+
+<filename> <image_width> x <image_height> <colordepth> <image_type> <progresive_vs_normal> <additonal_info> <size>
+
+Example:
+.PP
+.RS 0
+IMG_6387.jpeg 4032 x 3024 24bit JFIF  Normal Huffman 2416729
+.RS 0
+IMG_6806.jpeg 4032 x 3024 24bit Exif  Normal Huffman 2510587
+.RS 0
+.RE
+
+.SS Ls command style output format
+.PP
+Option
+.I -l
+moves filename to be last column, resulting output that is bit like output from `ls -l` command:
+
+<image_width> x <image_height> <colordepth> <image_type> <progresive_vs_normal> <size> <filename>
+
+Example:
+
+.PP
+.RS 0
+4032 x 3024 24bit JFIF  N 2416729 IMG_6387.jpeg
+.RS 0
+4032 x 3024 24bit Exif  N 2510587 IMG_6806.jpeg 
+.RS 0
+
 
 .SH OPTIONS
 .PP
@@ -93,7 +141,7 @@ None, so far :-)
 jpegoptim(1)
 
 .SH AUTHOR
-Timo Kokkonen (tjko@jyu.fi)
+Timo Kokkonen (tjko@iki.fi)
 
 .SH COPYING
 Copyright (C) 1995-2023  Timo Kokkonen

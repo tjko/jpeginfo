@@ -88,7 +88,7 @@ int md5_mode = 0;
 int sha256_mode = 0;
 int stdin_mode = 0;
 char *current = NULL;
-
+char last_error[JMSG_LENGTH_MAX + 1];
 
 static struct option long_options[] = {
 	{"verbose",0,0,'v'},
@@ -122,12 +122,17 @@ METHODDEF(void)
 METHODDEF(void)
 	my_output_message (j_common_ptr cinfo)
 {
-	char buffer[JMSG_LENGTH_MAX];
+	char buffer[JMSG_LENGTH_MAX + 1];
 
 	(*cinfo->err->format_message) (cinfo, buffer);
-	if (quiet_mode < 2) printf(" %s ",buffer);
+	buffer[sizeof(buffer)-1]=0;
+
+	if (verbose_mode)
+		fprintf(stderr, " %s ",buffer);
+
 	global_error_counter++;
 	global_total_errors++;
+	strncpy(last_error, buffer, sizeof(last_error));
 }
 
 
@@ -289,13 +294,15 @@ int main(int argc, char **argv)
 	MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
 	JSAMPARRAY buf = malloc(sizeof(JSAMPROW)*BUF_LINES);
 	jpeg_saved_marker_ptr exif_marker, cmarker;
-	int i,j;
+	volatile int i;
+	int j;
 	unsigned char ch;
 	char namebuf[1024];
 	unsigned char *inbuf = NULL;
 	long long fs;
 	char digest_text[65];
 	size_t inbuffersize;
+	volatile int phase;
 
 	if (!buf || !MD5) no_memory();
 
@@ -314,6 +321,7 @@ int main(int argc, char **argv)
 
 	/* process input file(s) */
 	do {
+		phase = 0;
 		current = argv[i];
 
 		/* open input file */
@@ -350,7 +358,6 @@ int main(int argc, char **argv)
 		fs = read_file(infile, (inbuffersize > 0 ? inbuffersize : 65536), &inbuf);
 		if (fs < 0) {
 			no_memory();
-			if (!quiet_mode) fprintf(stderr, "jpeginfo: failed to read file: %s\n", (stdin_mode ? "STDIN" : current));
 			continue;
 		}
 		fclose(infile);
@@ -363,8 +370,18 @@ int main(int argc, char **argv)
 					buf[j] = NULL;
 				}
 			}
-			if (list_mode && quiet_mode < 2) printf(" %s", current);
-			if (quiet_mode < 2) printf(" [ERROR]\n");
+			if (quiet_mode < 2) {
+				if (phase < 1)
+					printf("%s", current);
+				else if (phase < 2) {
+					printf("   0 x 0    n/a   n/a   N %7d", fs);
+					if (md5_mode | sha256_mode)
+						printf(" %s", digest_text);
+					if (list_mode)
+						printf(" %s ", current);
+				}
+				printf(" [ERROR] %s\n", last_error);
+			}
 			if (delete_mode) delete_file(current, verbose_mode, quiet_mode);
 			continue;
 		}
@@ -387,6 +404,7 @@ int main(int argc, char **argv)
 		}
 
 		if (!list_mode && quiet_mode < 2) printf("%s ", current);
+		phase = 1;
 
 		global_error_counter=0;
 		if (com_mode) jpeg_save_markers(&cinfo, JPEG_COM, 0xffff);
@@ -446,6 +464,7 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+		phase = 2;
 
 		if (check_mode) {
 			cinfo.out_color_space = JCS_GRAYSCALE; /* to speed up the process... */

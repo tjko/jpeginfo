@@ -1,5 +1,5 @@
 
-Jpeginfo v1.6.2  Copyright (c) 1995-2023, Timo Kokkonen.
+Jpeginfo v1.7.0beta  Copyright (c) 1995-2023, Timo Kokkonen.
 
 
 REQUIREMENTS
@@ -18,8 +18,8 @@ INSTALLATION
 	tar file, run configure script, and then compile the program. 
 	You may wanna do something like this:
 
-		gunzip -c jpeginfo-1.6.2.tar.gz | tar xf -
-		cd jpeginfo-1.6.2
+		gunzip -c jpeginfo-1.7.0.tar.gz | tar xf -
+		cd jpeginfo-1.7.0
 		./configure
 		make
 		make strip
@@ -31,6 +31,8 @@ INSTALLATION
 
 
 HISTORY
+        v1.7.0 - add support for reading input file stdin,
+	         other minor fixes.
 	v1.6.2 - add SHA256 digest support (--sha256 or -2),
 	         improved Win32 support thanks to tumagonx,
 		 other minor fixes.

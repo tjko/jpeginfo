@@ -59,7 +59,7 @@
 
 #define EXIF_JPEG_MARKER   JPEG_APP0+1
 #define EXIF_IDENT_STRING  "Exif\000\000"
-
+#define EXIF_IDENT_STRING_LEN 6
 
 struct my_error_mgr {
 	struct jpeg_error_mgr pub;
@@ -369,8 +369,9 @@ int main(int argc, char **argv)
 		exif_marker=NULL;
 		cmarker=cinfo.marker_list;
 		while (cmarker) {
-			if (cmarker->marker == EXIF_JPEG_MARKER) {
-				if (!memcmp(cmarker->data,EXIF_IDENT_STRING,6)) exif_marker=cmarker;
+			if (cmarker->marker == EXIF_JPEG_MARKER && cmarker->data_length >= EXIF_IDENT_STRING_LEN) {
+				if (!memcmp(cmarker->data, EXIF_IDENT_STRING, EXIF_IDENT_STRING_LEN))
+					exif_marker=cmarker;
 			}
 			cmarker=cmarker->next;
 		}

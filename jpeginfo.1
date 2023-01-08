@@ -127,11 +127,15 @@ can be one of the following:
 .RS
 .TP
 .B all
-files containing any type of errors/warnings, not nessessary preventing 
+Files containing any type of errors/warnings, not nessessary preventing
 the decoding. (default)
 .TP
 .B erronly
-only files with serious errors (ie. cannot be decoded at all).
+Only files with serious errors (ie. cannot be decoded at all).
+.RE
+.TP 0.6i
+.B -, --stdin
+Read input from standard input (instead of a file).
 
 
 .SH BUGS

@@ -109,4 +109,40 @@ char *digest2str(unsigned char *digest, char *s, unsigned int len)
 	return s;
 }
 
+
+long long read_file(FILE *fp, size_t start_size, unsigned char **bufptr)
+{
+	unsigned char *buf;
+	size_t buf_size, bytes_read;
+	size_t buf_used = 0;
+
+	if (!fp || !bufptr)
+		return -1;
+
+
+	/* allocate initial buffer for reading the file */
+	if (*bufptr)
+		free(*bufptr);
+	buf_size = (start_size > 8192 ? start_size : 8192);
+	*bufptr = malloc(buf_size);
+	if (! *bufptr)
+		return -2;
+
+
+	/* read file into the buffer */
+	do {
+		buf = *bufptr + buf_used;
+		bytes_read = fread(buf, 1, buf_size - buf_used, fp);
+		buf_used += bytes_read;
+		if (buf_used >= buf_size) {
+			buf_size *= 2;
+			*bufptr = realloc(*bufptr, buf_size);
+			if (! *bufptr)
+				return -3;
+		}
+	} while (bytes_read > 0);
+
+	return buf_used;
+}
+
 /* eof :-) */

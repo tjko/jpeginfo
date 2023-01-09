@@ -99,6 +99,7 @@ int md5_mode = 0;
 int sha256_mode = 0;
 int stdin_mode = 0;
 int csv_mode = 0;
+int header_mode = 0;
 char *current = NULL;
 char last_error[JMSG_LENGTH_MAX + 1];
 
@@ -117,6 +118,7 @@ static struct option long_options[] = {
 	{"version",0,0,'V'},
 	{"comments",0,0,'C'},
 	{"csv",0,0,'s'},
+	{"header",0,0,'H'},
 	{"stdin",0,&stdin_mode,1},
 	{0,0,0,0}
 };
@@ -199,6 +201,7 @@ void print_usage(void)
 		"                  Read the filenames to process from given file\n"
 		"                  (for standard input use '-' as a filename)\n"
 		"  -h, --help      Display this help and exit\n"
+		"  -H, --header    Display column name header in output\n"
 		"  -i, --info      Display even more information about pictures\n"
 		"  -l, --lsstyle   Use alternate listing format (ls -l style)\n"
 		"  -m<mode>, --mode=<mode>\n"
@@ -223,15 +226,9 @@ void parse_args(int argc, char **argv)
 {
 	int i, c;
 
-	if (argc < 2) {
-		if (quiet_mode < 2) fprintf(stderr, "jpeginfo: file arguments missing\n"
-					"Try 'jpeginfo --help' for more information.\n");
-		exit(1);
-	}
-
 	while(1) {
 		opt_index=0;
-		if ( (c=getopt_long(argc,argv, "livVdcChqm:f:52s",
+		if ( (c=getopt_long(argc,argv, "livVdcChqm:f:52sH",
 						long_options, &opt_index))  == -1)
 			break;
 		switch (c) {
@@ -285,6 +282,9 @@ void parse_args(int argc, char **argv)
 		case 's':
 			csv_mode=1;
 			break;
+		case 'H':
+			header_mode=1;
+			break;
 		case '?':
 			break;
 
@@ -302,6 +302,14 @@ void parse_args(int argc, char **argv)
 	if (delete_mode && verbose_mode && !quiet_mode)
 		fprintf(stderr, "jpeginfo: delete mode enabled (%s)\n",
 			(!del_mode ? "normal" : "errors only"));
+
+	if (argc <= optind) {
+		if (quiet_mode < 2) fprintf(stderr, "jpeginfo: file arguments missing\n"
+					"Try 'jpeginfo --help' for more information.\n");
+		exit(1);
+	}
+
+
 }
 
 
@@ -448,12 +456,43 @@ void print_jpeg_info(struct jpeg_info *info)
 {
 	const char *type, *einfo, *com, *error, *digest;
 	char p;
+	static int header_printed = 0;
 
 	if (!info)
 		return;
 
 	if (quiet_mode > 1)
 		return;
+
+	if (header_mode && !header_printed) {
+		if (csv_mode) {
+			printf("filename,size,hash,width,height,color_depth,type,progressive_normal,extra_info,comments,status,status_detail\n");
+		}
+		else if (list_mode) {
+			printf("  W  x  H   Color  Type P ");
+			if (longinfo_mode) printf("ExtraInfo            ");
+			printf("  Size  ");
+			if (md5_mode) printf("MD5                              ");
+			if (sha256_mode) printf("SHA-256                                                          ");
+			if (com_mode) printf("Comments                         ");
+			printf("Filename                         ");
+			if (check_mode)
+				printf("Status  Details");
+			printf("\n");
+		}
+		else {
+			printf("Filename                           W  x  H   Color  Type P ");
+			if (longinfo_mode) printf("ExtraInfo            ");
+			printf("  Size  ");
+			if (md5_mode) printf("MD5                              ");
+			if (sha256_mode) printf("SHA-256                                                          ");
+			if (com_mode) printf("Comments                         ");
+			if (check_mode)
+				printf("Status  Details");
+			printf("\n");
+		}
+		header_printed = 1;
+	}
 
 	type = (info->type ? info->type : "");
 	einfo = (info->info ? info->info : "");
@@ -482,19 +521,21 @@ void print_jpeg_info(struct jpeg_info *info)
 			);
 	}
 	else if (list_mode) {
-		printf("%4d x %4d %2dbit %5s %c%s%s %7lu %s%s%s%s%s %s%s%s\n",
+		printf("%4d x %4d %2dbit %5s %c ",
 			info->width,
 			info->height,
 			info->color_depth,
 			type,
-			p,
-			(longinfo_mode ? " " : ""),
-			(longinfo_mode ? einfo : ""),
-			info->size,
-			digest,
-			(info->digest ? " " : ""),
-			com,
-			(strlen(com) > 0 ? " " : ""),
+			p);
+		if (longinfo_mode)
+			printf("%-20s ", einfo);
+		printf("%7lu ",
+			info->size);
+		if (info->digest)
+			printf("%s ", digest);
+		if (com_mode)
+			printf("%-32s ", com);
+		printf("%-32s %-7s%s%s\n",
 			info->filename,
 			check_status_str(info->check),
 			(info->error ? " " : ""),
@@ -502,20 +543,22 @@ void print_jpeg_info(struct jpeg_info *info)
 			);
 	}
 	else {
-		printf("%s %4d x %4d %2dbit %5s %c%s%s %7lu %s%s%s%s%s%s%s\n",
+		printf("%-32s %4d x %4d %2dbit %5s %c ",
 			info->filename,
 			info->width,
 			info->height,
 			info->color_depth,
 			type,
-			p,
-			(longinfo_mode ? " " : ""),
-			(longinfo_mode ? einfo : ""),
-			info->size,
-			digest,
-			(info->digest ? " " : ""),
-			com,
-			(strlen(com) > 0 ? " " : ""),
+			p);
+		if (longinfo_mode)
+			printf("%-20s ", einfo);
+		printf("%7lu ",
+			info->size);
+		if (info->digest)
+			printf("%s ", digest);
+		if (com_mode)
+			printf("%-32s ", com);
+		printf("%-7s%s%s\n",
 			check_status_str(info->check),
 			(info->error ? " " : ""),
 			error
@@ -556,6 +599,9 @@ int main(int argc, char **argv)
 
 	/* Loop to process input file(s) */
 	do {
+		if (!argv[i])
+			break;
+
 		free_jpeg_info(info);
 		current = argv[i];
 
@@ -689,6 +735,7 @@ int main(int argc, char **argv)
 	} while ((!stdin_mode && ++i<argc) || input_from_file);
 
 	free_jpeg_info(info);
+	free(info);
 	if (inbuf)
 		free(inbuf);
 	jpeg_destroy_decompress(&cinfo);

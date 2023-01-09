@@ -339,8 +339,10 @@ void free_jpeg_info(struct jpeg_info *info)
 void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *info)
 {
 	jpeg_saved_marker_ptr cmarker;
-	int marker_in_count, marker_in_size;
 	char marker_str[256], comment_str[1024], tmp[64];
+	int marker_in_count = 0;
+	int comment_count = 0;
+	unsigned long marker_in_size = 0;
 
 	if (!cinfo || !info)
 		return;
@@ -361,8 +363,6 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	comment_str[0]=0;
 
 	/* Check for Exif/IPTC/ICC/XMP/etc. markers */
-	marker_in_count=0;
-	marker_in_size=0;
 	cmarker=cinfo->marker_list;
 
 	while (cmarker) {
@@ -406,10 +406,17 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 			*(tmp + o) = 0;
 
 			str_add_list(comment_str, sizeof(comment_str), tmp, ",");
+			comment_count++;
 		}
 
 		cmarker=cmarker->next;
 	}
+
+	if (verbose_mode)
+		fprintf(stderr, "Found total of %d markers (total size %lu bytes)\n", marker_in_count, marker_in_size);
+
+	if (comment_count > 0)
+		str_add_list(marker_str, sizeof(marker_str), "COM", ",");
 
 	if (cinfo->density_unit == 1 || cinfo->density_unit == 2) {
 		snprintf(tmp, sizeof(tmp), "%ddp%c", MIN(cinfo->X_density, cinfo->Y_density),
@@ -451,6 +458,8 @@ void print_jpeg_info(struct jpeg_info *info)
 	type = (info->type ? info->type : "");
 	einfo = (info->info ? info->info : "");
 	com = (info->comments ? info->comments : "");
+	if (!com_mode && !csv_mode)
+		com = "";
 	error = (info->error ? info->error : "");
 	digest = (info->digest ? info->digest : "");
 
@@ -590,6 +599,8 @@ int main(int argc, char **argv)
 		if (setjmp(jerr.setjmp_buffer)) {
 			info->check = 3;
 			info->error = strdup(last_error);
+			if (verbose_mode)
+				fprintf(stderr, "Error decoding JPEG image: %s\n", last_error);
 			jpeg_abort_decompress(&cinfo);
 			for(j = 0; j < BUF_LINES; j++) {
 				if (buf[j]) {
@@ -624,8 +635,10 @@ int main(int argc, char **argv)
 
 		/* Read JPEG file header */
 		global_error_counter=0;
-		if (com_mode) jpeg_save_markers(&cinfo, JPEG_COM, 0xffff);
-		jpeg_save_markers(&cinfo, EXIF_JPEG_MARKER, 0xffff);
+		jpeg_save_markers(&cinfo, JPEG_COM, 0xffff);
+		for (j = 0; j < 16; j++) {
+			jpeg_save_markers(&cinfo, JPEG_APP0 + j, 0xffff);
+		}
 		jpeg_mem_src(&cinfo, inbuf, fs);
 		jpeg_read_header(&cinfo, TRUE);
 		parse_jpeg_info(&cinfo, info);
@@ -655,6 +668,8 @@ int main(int argc, char **argv)
 				buf[j] = NULL;
 			}
 
+			if (verbose_mode && global_error_counter > 0)
+				fprintf(stderr, "Warnings decoding JPEG image: %s\n", last_error);
 			info->check = (global_error_counter == 0 ? 1 : 2);
 			info->error = strdup(last_error);
 			print_jpeg_info(info);

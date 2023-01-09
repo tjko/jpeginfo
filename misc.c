@@ -145,4 +145,45 @@ long long read_file(FILE *fp, size_t start_size, unsigned char **bufptr)
 	return buf_used;
 }
 
+
+char *strncopy(char *dst, const char *src, size_t len)
+{
+	if (!dst || !src || len < 1)
+		return NULL;
+
+	strncpy(dst, src, len - 1);
+	dst[len - 1] = 0;
+
+	return dst;
+}
+
+
+char *strnconcat(char *dst, const char *src, size_t size)
+{
+	int len, free;
+
+	if (!dst || !src || size < 1)
+		return NULL;
+
+	/* Check if dst string is already "full" ... */
+	len = strnlen(dst, size);
+	if ((free = size - len) <= 1)
+		return dst;
+
+	return strncat(dst + len, src, free - 1);
+}
+
+
+char *str_add_list(char *dst, size_t size, const char *src, const char *delim)
+{
+	if (!dst || !src || !delim || size < 1)
+		return NULL;
+
+
+	if (strnlen(dst, size) > 0)
+		strnconcat(dst, delim, size);
+
+	return strnconcat(dst, src, size);
+}
+
 /* eof :-) */

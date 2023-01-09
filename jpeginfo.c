@@ -396,7 +396,7 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 			int o = 0;
 			for (int i = 0; i < cmarker->data_length; i++) {
 				char ch = cmarker->data[i];
-				if (ch < 32 || iscntrl(ch)) {
+				if (!isprint(ch)) {
 					ch = '.';
 				}
 				if (o < sizeof(tmp) - 1) {
@@ -482,7 +482,7 @@ void print_jpeg_info(struct jpeg_info *info)
 			);
 	}
 	else if (list_mode) {
-		printf("%4d x %4d %2dbit %5s %c%s%s %7lu %s%s%s %s%s%s\n",
+		printf("%4d x %4d %2dbit %5s %c%s%s %7lu %s%s%s%s%s %s%s%s\n",
 			info->width,
 			info->height,
 			info->color_depth,
@@ -493,6 +493,8 @@ void print_jpeg_info(struct jpeg_info *info)
 			info->size,
 			digest,
 			(info->digest ? " " : ""),
+			com,
+			(strlen(com) > 0 ? " " : ""),
 			info->filename,
 			check_status_str(info->check),
 			(info->error ? " " : ""),
@@ -500,7 +502,7 @@ void print_jpeg_info(struct jpeg_info *info)
 			);
 	}
 	else {
-		printf("%s %4d x %4d %2dbit %5s %c%s%s %7lu %s%s%s%s%s\n",
+		printf("%s %4d x %4d %2dbit %5s %c%s%s %7lu %s%s%s%s%s%s%s\n",
 			info->filename,
 			info->width,
 			info->height,
@@ -512,6 +514,8 @@ void print_jpeg_info(struct jpeg_info *info)
 			info->size,
 			digest,
 			(info->digest ? " " : ""),
+			com,
+			(strlen(com) > 0 ? " " : ""),
 			check_status_str(info->check),
 			(info->error ? " " : ""),
 			error

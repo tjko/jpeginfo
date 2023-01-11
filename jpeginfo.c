@@ -99,6 +99,7 @@ int md5_mode = 0;
 int sha256_mode = 0;
 int stdin_mode = 0;
 int csv_mode = 0;
+int json_mode = 0;
 int header_mode = 0;
 char *current = NULL;
 char last_error[JMSG_LENGTH_MAX + 1];
@@ -118,6 +119,7 @@ static struct option long_options[] = {
 	{"version",0,0,'V'},
 	{"comments",0,0,'C'},
 	{"csv",0,0,'s'},
+	{"json",0,0,'j'},
 	{"header",0,0,'H'},
 	{"stdin",0,&stdin_mode,1},
 	{0,0,0,0}
@@ -203,6 +205,7 @@ void print_usage(void)
 		"  -h, --help      Display this help and exit\n"
 		"  -H, --header    Display column name header in output\n"
 		"  -i, --info      Display even more information about pictures\n"
+		"  -j, --json      JSON output style.\n"
 		"  -l, --lsstyle   Use alternate listing format (ls -l style)\n"
 		"  -m<mode>, --mode=<mode>\n"
 		"                  Defines which jpegs to remove (when using"
@@ -281,6 +284,9 @@ void parse_args(int argc, char **argv)
 			break;
 		case 's':
 			csv_mode=1;
+			break;
+		case 'j':
+			json_mode=1;
 			break;
 		case 'H':
 			header_mode=1;
@@ -457,6 +463,7 @@ void print_jpeg_info(struct jpeg_info *info)
 	const char *type, *einfo, *com, *error, *digest;
 	char p;
 	static int header_printed = 0;
+	static long line =  0;
 
 	if (!info)
 		return;
@@ -464,9 +471,12 @@ void print_jpeg_info(struct jpeg_info *info)
 	if (quiet_mode > 1)
 		return;
 
-	if (header_mode && !header_printed) {
+	if ((header_mode || json_mode) && !header_printed) {
 		if (csv_mode) {
 			printf("filename,size,hash,width,height,color_depth,type,progressive_normal,extra_info,comments,status,status_detail\n");
+		}
+		else if (json_mode) {
+			printf("[\n");
 		}
 		else if (list_mode) {
 			printf("  W  x  H   Color  Type P ");
@@ -504,6 +514,8 @@ void print_jpeg_info(struct jpeg_info *info)
 
 	p = (info->progressive ? 'P' : 'N');
 
+	line++;
+
 	if (csv_mode) {
 		printf("\"%s\",%lu,\"%s\",%d,%d,\"%dbit\",\"%s\",\"%c\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
 			info->filename,
@@ -514,6 +526,26 @@ void print_jpeg_info(struct jpeg_info *info)
 			info->color_depth,
 			type,
 			p,
+			einfo,
+			com,
+			check_status_str(info->check),
+			error
+			);
+	}
+	else if (json_mode) {
+		if (line > 1)
+			printf(",\n");
+		printf(" { \"filename\":\"%s\", \"size\":%lu, \"hash\":\"%s\", \"width\":%d, \"height\":%d,"
+			" \"color_depth\":\"%dbit\", \"type\":\"%s\", \"mode\":\"%s\", \"info\":\"%s\","
+			" \"comments\":\"%s\", \"status\":\"%s\", \"status_detail\":\"%s\" }",
+			info->filename,
+			info->size,
+			digest,
+			info->width,
+			info->height,
+			info->color_depth,
+			type,
+			(p == 'P' ? "Progressive" : "Normal"),
 			einfo,
 			com,
 			check_status_str(info->check),
@@ -733,6 +765,9 @@ int main(int argc, char **argv)
 
 
 	} while ((!stdin_mode && ++i<argc) || input_from_file);
+
+	if (json_mode)
+		printf("\n]\n");
 
 	free_jpeg_info(info);
 	free(info);

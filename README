@@ -32,7 +32,8 @@ INSTALLATION
 
 HISTORY
         v1.7.0 - support for CSV output (--csv),
-	         add support for reading input file stdin (--stdin),
+	         support for JSON output (--json),
+	         add support for reading input file from stdin (--stdin),
 		 add support for displaying column names (--header),
 	         other minor fixes.
 	v1.6.2 - add SHA256 digest support (--sha256 or -2),

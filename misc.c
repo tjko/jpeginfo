@@ -94,47 +94,39 @@ char *fgetstr(char *s, int n, FILE *stream)
 
 char *digest2str(unsigned char *digest, char *s, unsigned int len)
 {
-	int i;
-	char *r;
+	char *output = s;
 
 	if (!digest || !s)
 		return NULL;
 
-	r = s;
-	for (i = 0; i < len; i++) {
-		snprintf(r, 3, "%02x", digest[i]);
-		r += 2;
+	*output = 0;
+	for (int i = 0; i < len; i++) {
+		snprintf(output, 3, "%02x", digest[i]);
+		output += 2;
 	}
 
 	return s;
 }
 
 
-long long read_file(FILE *fp, size_t start_size, unsigned char **bufptr)
+long long read_file(FILE *fp, size_t buf_size, unsigned char **bufptr)
 {
-	unsigned char *buf;
-	size_t buf_size, bytes_read;
 	size_t buf_used = 0;
+	size_t bytes_read;
 
 	if (!fp || !bufptr)
 		return -1;
 
-
-	/* allocate initial buffer for reading the file */
-	if (*bufptr)
-		free(*bufptr);
-	buf_size = (start_size > 8192 ? start_size : 8192);
-	*bufptr = malloc(buf_size);
-	if (! *bufptr)
+	/* Allocate initial buffer for reading the file */
+	if ((*bufptr = realloc(*bufptr, buf_size)) == NULL)
 		return -2;
 
-
-	/* read file into the buffer */
+	/* Read file into the buffer */
 	do {
-		buf = *bufptr + buf_used;
-		bytes_read = fread(buf, 1, buf_size - buf_used, fp);
+		bytes_read = fread(*bufptr + buf_used, 1, buf_size - buf_used, fp);
 		buf_used += bytes_read;
 		if (buf_used >= buf_size) {
+			/* Expand buffer if needed */
 			buf_size *= 2;
 			*bufptr = realloc(*bufptr, buf_size);
 			if (! *bufptr)

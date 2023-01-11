@@ -127,6 +127,7 @@ static struct option long_options[] = {
 
 /*****************************************************************************/
 
+
 METHODDEF(void)
 	my_error_exit (j_common_ptr cinfo)
 {
@@ -141,8 +142,8 @@ METHODDEF(void)
 {
 	char buffer[JMSG_LENGTH_MAX + 1];
 
-	(*cinfo->err->format_message) (cinfo, buffer);
-	buffer[sizeof(buffer)-1]=0;
+	(*cinfo->err->format_message)(cinfo, buffer);
+	buffer[sizeof(buffer) - 1] = 0;
 
 	if (verbose_mode)
 		fprintf(stderr, " %s ",buffer);
@@ -373,7 +374,7 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	else
 		info->type = strdup("n/a");
 
-	strncopy(marker_str, (cinfo->arith_code ? "Arithmetic" : "Huffman"), sizeof(marker_str));
+	strncopy(marker_str, (cinfo->arith_code ? "Arithmetic" : ""), sizeof(marker_str));
 	comment_str[0]=0;
 
 	/* Check for Exif/IPTC/ICC/XMP/etc. markers */
@@ -446,6 +447,7 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	info->comments = strdup(comment_str);
 }
 
+
 const char *check_status_str(int check)
 {
 	if (check == 1)
@@ -457,6 +459,7 @@ const char *check_status_str(int check)
 
 	return "";
 }
+
 
 void print_jpeg_info(struct jpeg_info *info)
 {
@@ -598,19 +601,19 @@ void print_jpeg_info(struct jpeg_info *info)
 	}
 }
 
+
 /*****************************************************************************/
 int main(int argc, char **argv)
 {
 	MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
 	JSAMPARRAY buf = malloc(sizeof(JSAMPROW)*BUF_LINES);
+	struct jpeg_info *info = malloc(sizeof(struct jpeg_info));
 	volatile int i;
 	int j;
 	char namebuf[1024];
 	unsigned char *inbuf = NULL;
-	long long fs;
-	char digest_text[65];
-	size_t inbuffersize;
-	struct jpeg_info *info = malloc(sizeof(struct jpeg_info));
+	long long file_size;
+	size_t inbuffer_size;
 
 	if (!buf || !MD5 || !info)
 		no_memory();
@@ -642,7 +645,7 @@ int main(int argc, char **argv)
 			if (verbose_mode)
 				fprintf(stderr, "Reading file: <STDIN>\n");
 			infile = stdin;
-			inbuffersize = 256 * 1024;
+			inbuffer_size = 256 * 1024;
 			current = "-";
 		} else {
 			if (input_from_file) {
@@ -663,18 +666,15 @@ int main(int argc, char **argv)
 				if (verbose_mode) fprintf(stderr, "Skipping directory: %s\n", current);
 				continue;
 			}
-			inbuffersize = filesize(infile);
+			inbuffer_size = filesize(infile);
 		}
 		info->filename = strdup(current);
 
-		/* Read input file into a buffer */
-		fs = read_file(infile, (inbuffersize > 0 ? inbuffersize : 65536), &inbuf);
-		if (fs < 0) {
+		/* Read input file into a memory buffer */
+		if ((file_size = read_file(infile, inbuffer_size, &inbuf)) < 0)
 			no_memory();
-			continue;
-		}
 		fclose(infile);
-		info->size = fs;
+		info->size = file_size;
 
 		/* Error handler for (libjpeg) errors in decoding */
 		last_error[0] = 0;
@@ -690,30 +690,29 @@ int main(int argc, char **argv)
 					buf[j] = NULL;
 				}
 			}
-			if (quiet_mode < 2) {
+			if (quiet_mode < 2)
 				print_jpeg_info(info);
-			}
-			if (delete_mode) delete_file(current, verbose_mode, quiet_mode);
+			if (delete_mode)
+				delete_file(current, verbose_mode, quiet_mode);
 			continue;
 		}
 
 		/* Calculate hash (message-digest) of the input file */
 		if (md5_mode || sha256_mode) {
 			unsigned char digest[32];
+			char digest_text[65];
 
-			digest_text[0] = 0;
 			if (md5_mode) {
 				MD5Init(MD5);
-				MD5Update(MD5, inbuf, fs);
+				MD5Update(MD5, inbuf, file_size);
 				MD5Final(digest, MD5);
 				digest2str(digest, digest_text, 16);
 			} else {
-				crypto_hash_sha256(digest, inbuf, fs);
+				crypto_hash_sha256(digest, inbuf, file_size);
 				digest2str(digest, digest_text, 32);
 			}
 			info->digest = strdup(digest_text);
 		}
-
 
 		/* Read JPEG file header */
 		global_error_counter=0;
@@ -721,7 +720,7 @@ int main(int argc, char **argv)
 		for (j = 0; j < 16; j++) {
 			jpeg_save_markers(&cinfo, JPEG_APP0 + j, 0xffff);
 		}
-		jpeg_mem_src(&cinfo, inbuf, fs);
+		jpeg_mem_src(&cinfo, inbuf, file_size);
 		jpeg_read_header(&cinfo, TRUE);
 		parse_jpeg_info(&cinfo, info);
 
@@ -733,18 +732,17 @@ int main(int argc, char **argv)
 			cinfo.scale_num = 1;
 			jpeg_start_decompress(&cinfo);
 
-			for (j=0;j<BUF_LINES;j++) {
-				buf[j]=malloc(sizeof(JSAMPLE) *
-					cinfo.output_width *
-					cinfo.out_color_components);
-				if (!buf[j]) no_memory();
+			for (j = 0; j < BUF_LINES; j++) {
+				buf[j] = malloc(sizeof(JSAMPLE) * cinfo.output_width *
+						cinfo.out_color_components);
+				if (!buf[j])
+					no_memory();
 			}
 
 			while (cinfo.output_scanline < cinfo.output_height) {
 				jpeg_read_scanlines(&cinfo, buf, BUF_LINES);
 			}
 
-			jpeg_finish_decompress(&cinfo);
 			for(j = 0; j < BUF_LINES; j++) {
 				free(buf[j]);
 				buf[j] = NULL;
@@ -757,28 +755,30 @@ int main(int argc, char **argv)
 			print_jpeg_info(info);
 			if (delete_mode && !del_mode && info->check > 1)
 					delete_file(current, verbose_mode, quiet_mode);
+			jpeg_finish_decompress(&cinfo);
 		}
-		else { /* !check_mode */
+		else {
+			/* When not checking integrity, just print out info we have. */
 			print_jpeg_info(info);
 			jpeg_abort_decompress(&cinfo);
 		}
-
 
 	} while ((!stdin_mode && ++i<argc) || input_from_file);
 
 	if (json_mode)
 		printf("\n]\n");
 
+	/* Free up allocated memory to keep MemorySanitizier happy :-) */
 	free_jpeg_info(info);
+	jpeg_destroy_decompress(&cinfo);
+	free(MD5);
 	free(info);
+	free(buf);
 	if (inbuf)
 		free(inbuf);
-	jpeg_destroy_decompress(&cinfo);
-	free(buf);
-	free(MD5);
 
-	return (global_total_errors > 0 ? 1 : 0); /* return 1 if any errors found file(s)
-						     we checked */
+	 /* Return 1 if any errors found in files checked */
+	return (global_total_errors > 0 ? 1 : 0);
 }
 
 /* :-) */

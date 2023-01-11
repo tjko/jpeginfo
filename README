@@ -3,8 +3,8 @@ Jpeginfo v1.7.0beta  Copyright (c) 1995-2023, Timo Kokkonen.
 
 
 REQUIREMENTS
-	jpeglib, Independent JPEG Group's jpeg library version 6a or
-        version 7 (or later version)
+	Independent JPEG Group's jpeg library (libjpeg) version 6b or later.
+	(Alternatively should also work with libjpeg-turbo or mozjpeg)
 
 TESTED PLATFORMS
 	Linux

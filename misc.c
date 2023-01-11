@@ -109,6 +109,8 @@ char *digest2str(unsigned char *digest, char *s, unsigned int len)
 }
 
 
+#define MIN_READ_BUFFER_SIZE 512
+
 long long read_file(FILE *fp, size_t buf_size, unsigned char **bufptr)
 {
 	size_t buf_used = 0;
@@ -118,6 +120,8 @@ long long read_file(FILE *fp, size_t buf_size, unsigned char **bufptr)
 		return -1;
 
 	/* Allocate initial buffer for reading the file */
+	if (buf_size < MIN_READ_BUFFER_SIZE)
+		buf_size = MIN_READ_BUFFER_SIZE;
 	if ((*bufptr = realloc(*bufptr, buf_size)) == NULL)
 		return -2;
 

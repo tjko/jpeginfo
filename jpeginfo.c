@@ -145,8 +145,8 @@ METHODDEF(void)
 	(*cinfo->err->format_message)(cinfo, buffer);
 	buffer[sizeof(buffer) - 1] = 0;
 
-	if (verbose_mode)
-		fprintf(stderr, " %s ",buffer);
+	if (verbose_mode > 1)
+		fprintf(stderr, "libjpeg: %s\n",buffer);
 
 	global_error_counter++;
 	global_total_errors++;
@@ -163,9 +163,6 @@ void no_memory(void)
 
 void print_version()
 {
-	struct jpeg_error_mgr jcerr, *err;
-
-
 #ifdef  __DATE__
 	printf("jpeginfo v%s  %s (%s)\n", VERSION, HOST_TYPE, __DATE__);
 #else
@@ -176,14 +173,9 @@ void print_version()
 		"and you are welcome to redistirbute it under certain conditions.\n"
 		"See the GNU General Public License for more details.\n\n");
 
-	if (!(err=jpeg_std_error(&jcerr))) {
-		fprintf(stderr, "jpeg_std_error() failed\n");
-		exit(1);
-	}
-
 	printf("\nlibjpeg version: %s\n%s\n",
-		err->jpeg_message_table[JMSG_VERSION],
-		err->jpeg_message_table[JMSG_COPYRIGHT]);
+		jerr.pub.jpeg_message_table[JMSG_VERSION],
+		jerr.pub.jpeg_message_table[JMSG_COPYRIGHT]);
 }
 
 
@@ -251,7 +243,7 @@ void parse_args(int argc, char **argv)
 			input_from_file=1;
 			break;
 		case 'v':
-			verbose_mode=1;
+			verbose_mode++;
 			break;
 		case 'V':
 			print_version();
@@ -358,6 +350,11 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	int marker_in_count = 0;
 	int comment_count = 0;
 	unsigned long marker_in_size = 0;
+	int exif_seen = 0;
+	int iptc_seen = 0;
+	int icc_seen = 0;
+	int xmp_seen = 0;
+	int jfxx_seen = 0;
 
 	if (!cinfo || !info)
 		return;
@@ -374,7 +371,7 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	else
 		info->type = strdup("n/a");
 
-	strncopy(marker_str, (cinfo->arith_code ? "Arithmetic" : ""), sizeof(marker_str));
+	strncopy(marker_str, (cinfo->arith_code ? "Arith" : ""), sizeof(marker_str));
 	comment_str[0]=0;
 
 	/* Check for Exif/IPTC/ICC/XMP/etc. markers */
@@ -384,28 +381,42 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 		marker_in_count++;
 		marker_in_size+=cmarker->data_length;
 
-		if (cmarker->marker == EXIF_JPEG_MARKER &&
+		if (verbose_mode > 1)
+			fprintf(stderr, "Found marker 0x%X: original_length=%u, data_length=%u\n",
+				cmarker->marker, cmarker->original_length, cmarker->data_length);
+
+		if (cmarker->marker == EXIF_JPEG_MARKER && !exif_seen &&
 			cmarker->data_length >= EXIF_IDENT_STRING_SIZE &&
-			!memcmp(cmarker->data,EXIF_IDENT_STRING,EXIF_IDENT_STRING_SIZE))
+			!memcmp(cmarker->data,EXIF_IDENT_STRING,EXIF_IDENT_STRING_SIZE)) {
 			str_add_list(marker_str, sizeof(marker_str), "Exif", ",");
+			exif_seen = 1;
+		}
 
-		if (cmarker->marker == IPTC_JPEG_MARKER)
+		if (cmarker->marker == IPTC_JPEG_MARKER && !iptc_seen) {
 			str_add_list(marker_str, sizeof(marker_str), "IPTC", ",");
+			iptc_seen = 1;
+		}
 
-		if (cmarker->marker == ICC_JPEG_MARKER &&
+		if (cmarker->marker == ICC_JPEG_MARKER && !icc_seen &&
 			cmarker->data_length >= ICC_IDENT_STRING_SIZE &&
-			!memcmp(cmarker->data,ICC_IDENT_STRING,ICC_IDENT_STRING_SIZE))
+			!memcmp(cmarker->data,ICC_IDENT_STRING,ICC_IDENT_STRING_SIZE)) {
 			str_add_list(marker_str, sizeof(marker_str), "ICC", ",");
+			icc_seen = 1;
+		}
 
-		if (cmarker->marker == XMP_JPEG_MARKER &&
+		if (cmarker->marker == XMP_JPEG_MARKER && !xmp_seen &&
 			cmarker->data_length >= XMP_IDENT_STRING_SIZE &&
-			!memcmp(cmarker->data,XMP_IDENT_STRING,XMP_IDENT_STRING_SIZE))
+			!memcmp(cmarker->data,XMP_IDENT_STRING,XMP_IDENT_STRING_SIZE)) {
 			str_add_list(marker_str, sizeof(marker_str), "XMP", ",");
+			xmp_seen = 1;
+		}
 
-		if (cmarker->marker == JFXX_JPEG_MARKER &&
+		if (cmarker->marker == JFXX_JPEG_MARKER && !jfxx_seen &&
 			cmarker->data_length >= JFXX_IDENT_STRING_SIZE &&
-			!memcmp(cmarker->data, JFXX_IDENT_STRING, JFXX_IDENT_STRING_SIZE))
+			!memcmp(cmarker->data, JFXX_IDENT_STRING, JFXX_IDENT_STRING_SIZE)) {
 			str_add_list(marker_str, sizeof(marker_str), "JFXX", ",");
+			jfxx_seen = 1;
+		}
 
 		if (cmarker->marker == JPEG_COM && cmarker->data_length > 0) {
 			int o = 0;
@@ -634,11 +645,10 @@ int main(int argc, char **argv)
 
 	/* Loop to process input file(s) */
 	do {
-		if (!argv[i])
+		if ((current = argv[i]) == NULL)
 			break;
 
 		free_jpeg_info(info);
-		current = argv[i];
 
 		/* Open input file */
 		if (stdin_mode) {
@@ -675,9 +685,9 @@ int main(int argc, char **argv)
 			no_memory();
 		fclose(infile);
 		info->size = file_size;
+		last_error[0] = 0;
 
 		/* Error handler for (libjpeg) errors in decoding */
-		last_error[0] = 0;
 		if (setjmp(jerr.setjmp_buffer)) {
 			info->check = 3;
 			info->error = strdup(last_error);
@@ -748,6 +758,7 @@ int main(int argc, char **argv)
 				buf[j] = NULL;
 			}
 
+			jpeg_finish_decompress(&cinfo);
 			if (verbose_mode && global_error_counter > 0)
 				fprintf(stderr, "Warnings decoding JPEG image: %s\n", last_error);
 			info->check = (global_error_counter == 0 ? 1 : 2);
@@ -755,12 +766,11 @@ int main(int argc, char **argv)
 			print_jpeg_info(info);
 			if (delete_mode && !del_mode && info->check > 1)
 					delete_file(current, verbose_mode, quiet_mode);
-			jpeg_finish_decompress(&cinfo);
 		}
 		else {
 			/* When not checking integrity, just print out info we have. */
-			print_jpeg_info(info);
 			jpeg_abort_decompress(&cinfo);
+			print_jpeg_info(info);
 		}
 
 	} while ((!stdin_mode && ++i<argc) || input_from_file);
@@ -769,10 +779,10 @@ int main(int argc, char **argv)
 		printf("\n]\n");
 
 	/* Free up allocated memory to keep MemorySanitizier happy :-) */
-	free_jpeg_info(info);
 	jpeg_destroy_decompress(&cinfo);
-	free(MD5);
+	free_jpeg_info(info);
 	free(info);
+	free(MD5);
 	free(buf);
 	if (inbuf)
 		free(inbuf);

@@ -146,44 +146,44 @@ long long read_file(FILE *fp, size_t start_size, unsigned char **bufptr)
 }
 
 
-char *strncopy(char *dst, const char *src, size_t len)
+char *strncopy(char *dst, const char *src, size_t size)
 {
-	if (!dst || !src || len < 1)
-		return NULL;
+	if (!dst || !src || size < 1)
+		return dst;
 
-	strncpy(dst, src, len - 1);
-	dst[len - 1] = 0;
+	if (size > 1)
+		strncpy(dst, src, size - 1);
+	dst[size - 1] = 0;
 
 	return dst;
 }
 
 
-char *strnconcat(char *dst, const char *src, size_t size)
+char *strncatenate(char *dst, const char *src, size_t size)
 {
-	int len, free;
+	int used, free;
 
 	if (!dst || !src || size < 1)
-		return NULL;
-
-	/* Check if dst string is already "full" ... */
-	len = strnlen(dst, size);
-	if ((free = size - len) <= 1)
 		return dst;
 
-	return strncat(dst + len, src, free - 1);
+	/* Check if dst string is already "full" ... */
+	used = strnlen(dst, size);
+	if ((free = size - used) <= 1)
+		return dst;
+
+	return strncat(dst + used, src, free - 1);
 }
 
 
 char *str_add_list(char *dst, size_t size, const char *src, const char *delim)
 {
 	if (!dst || !src || !delim || size < 1)
-		return NULL;
-
+		return dst;
 
 	if (strnlen(dst, size) > 0)
-		strnconcat(dst, delim, size);
+		strncatenate(dst, delim, size);
 
-	return strnconcat(dst, src, size);
+	return strncatenate(dst, src, size);
 }
 
 /* eof :-) */

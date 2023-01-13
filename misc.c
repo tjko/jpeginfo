@@ -74,17 +74,17 @@ void delete_file(char *name, int verbose_mode, int quiet_mode)
 }
 
 
-char *fgetstr(char *s, int n, FILE *stream)
+char *fgetstr(char *s, size_t size, FILE *stream)
 {
 	char *p;
 
-	if (!stream || !s || n < 1)
+	if (!s || size < 1 || !stream)
 		return NULL;
 
-	if (!fgets(s,n,stream))
+	if (!fgets(s, size, stream))
 		return NULL;
 
-	p=&s[strlen(s)-1];
+	p = s + strnlen(s, size) - 1;
 	while ((p >= s) && ((*p == 10) || (*p == 13)))
 		*p--=0;
 

@@ -48,7 +48,7 @@
 int  is_dir(FILE *fp);
 long long filesize(FILE *fp);
 void delete_file(char *name, int verbose_mode, int quiet_mode);
-char *fgetstr(char *s,int n,FILE *stream);
+char *fgetstr(char *s, size_t size, FILE *stream);
 char *digest2str(unsigned char *digest, char *s, unsigned int len);
 long long read_file(FILE *fp, size_t start_size, unsigned char **bufptr);
 char *strncopy(char *dst, const char *src, size_t size);

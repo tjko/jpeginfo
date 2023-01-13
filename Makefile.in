@@ -97,7 +97,7 @@ love:
 	@echo "Not War - Eh?"
 
 spell:
-	codespell -S .git -S tools
+	codespell -S .git,tools
 
 # eof
 

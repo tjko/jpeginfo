@@ -16,7 +16,7 @@ TESTED PLATFORMS
 INSTALLATION
 	Installation should be very straightforward, just unpack the
 	tar file, run configure script, and then compile the program. 
-	You may wanna do something like this:
+	You may want to do something like this:
 
 		gunzip -c jpeginfo-1.7.0.tar.gz | tar xf -
 		cd jpeginfo-1.7.0

@@ -350,7 +350,8 @@ void free_jpeg_info(struct jpeg_info *info)
 void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *info)
 {
 	jpeg_saved_marker_ptr cmarker;
-	char marker_str[256], comment_str[1024], tmp[64];
+	char marker_str[256], info_str[256];
+	char comment_str[1024], tmp[64];
 	int marker_in_count = 0;
 	int comment_count = 0;
 	unsigned long marker_in_size = 0;
@@ -368,15 +369,10 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	info->color_depth = (int)cinfo->num_components * 8;
 	info->progressive = (cinfo->progressive_mode ? 1 : 0);
 
-	if (cinfo->saw_Adobe_marker)
-		info->type = strdup("Adobe");
-	else if (cinfo->saw_JFIF_marker)
-		info->type = strdup("JFIF");
-	else
-		info->type = strdup("n/a");
 
-	strncopy(marker_str, (cinfo->arith_code ? "Arith" : ""), sizeof(marker_str));
+	strncopy(info_str, (cinfo->arith_code ? "Arithmetic" : "Huffman"), sizeof(info_str));
 	comment_str[0]=0;
+	marker_str[0]=0;
 
 	/* Check for Exif/IPTC/ICC/XMP/etc. markers */
 	cmarker=cinfo->marker_list;
@@ -447,18 +443,23 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 
 	if (comment_count > 0)
 		str_add_list(marker_str, sizeof(marker_str), "COM", ",");
+	if (cinfo->saw_Adobe_marker)
+		str_add_list(marker_str, sizeof(marker_str), "Adobe ", ",");
+	if (cinfo->saw_JFIF_marker)
+		str_add_list(marker_str, sizeof(marker_str), "JFIF ", ",");
 
 	if (cinfo->density_unit == 1 || cinfo->density_unit == 2) {
 		snprintf(tmp, sizeof(tmp), "%ddp%c", MIN(cinfo->X_density, cinfo->Y_density),
 			(cinfo->density_unit == 1 ? 'i' : 'c') );
-		str_add_list(marker_str, sizeof(marker_str), tmp, ",");
+		str_add_list(info_str, sizeof(marker_str), tmp, ",");
 	}
 
 	if (cinfo->CCIR601_sampling) {
-		str_add_list(marker_str, sizeof(marker_str), "CCIR601", ",");
+		str_add_list(info_str, sizeof(marker_str), "CCIR601", ",");
 	}
 
-	info->info = strdup(marker_str);
+	info->type = strdup(marker_str);
+	info->info = strdup(info_str);
 	info->comments = strdup(comment_str);
 }
 
@@ -491,23 +492,16 @@ void print_jpeg_info(struct jpeg_info *info)
 
 	if ((header_mode || json_mode) && !header_printed) {
 		if (csv_mode) {
-			printf("filename,size,");
-			if (md5_mode)
-				printf("md5");
-			else if (sha256_mode)
-				printf("sha256");
-			else
-				printf("sha512");
-			printf("_hash,width,height,color_depth,type,progressive_normal,extra_info,comments,status,status_detail\n");
+			printf("filename,size,hash,width,height,color_depth,markers,progressive_normal,extra_info,comments,status,status_detail\n");
 		}
 		else if (json_mode) {
 			printf("[\n");
 		}
 		else if (list_mode) {
-			printf("  W  x  H   Color  Type P ");
+			printf("  W  x  H   Color P Markers              ");
 			if (longinfo_mode)
 				printf("ExtraInfo            ");
-			printf("  Size  ");
+			printf("   Size ");
 			if (md5_mode)
 				printf("MD5                              ");
 			if (sha256_mode)
@@ -523,10 +517,10 @@ void print_jpeg_info(struct jpeg_info *info)
 			printf("\n");
 		}
 		else {
-			printf("Filename                           W  x  H   Color  Type P ");
+			printf("Filename                           W  x  H   Color P Markers              ");
 			if (longinfo_mode)
 				printf("ExtraInfo            ");
-			printf("  Size  ");
+			printf("   Size ");
 			if (md5_mode)
 				printf("MD5                              ");
 			if (sha256_mode)
@@ -592,12 +586,12 @@ void print_jpeg_info(struct jpeg_info *info)
 			);
 	}
 	else if (list_mode) {
-		printf("%4d x %4d %2dbit %5s %c ",
+		printf("%4d x %4d %2dbit %c %-20s ",
 			info->width,
 			info->height,
 			info->color_depth,
-			type,
-			p);
+			p,
+			type);
 		if (longinfo_mode)
 			printf("%-20s ", einfo);
 		printf("%7lu ",
@@ -614,13 +608,13 @@ void print_jpeg_info(struct jpeg_info *info)
 			);
 	}
 	else {
-		printf("%-32s %4d x %4d %2dbit %5s %c ",
+		printf("%-32s %4d x %4d %2dbit %c %-20s ",
 			info->filename,
 			info->width,
 			info->height,
 			info->color_depth,
-			type,
-			p);
+			p,
+			type);
 		if (longinfo_mode)
 			printf("%-20s ", einfo);
 		printf("%7lu ",

@@ -35,8 +35,9 @@ HISTORY
 	         support for JSON output (--json),
 	         add support for reading input file from stdin (--stdin),
 		 add support for displaying column names (--header),
+		 add SHA-512 sigest support (--sha512),
 	         other minor fixes.
-	v1.6.2 - add SHA256 digest support (--sha256 or -2),
+	v1.6.2 - add SHA-256 digest support (--sha256 or -2),
 	         improved Win32 support thanks to tumagonx,
 		 other minor fixes.
 	v1.6.1 - support for new libjpeg v7 thanks to Guido Vollbeding,
@@ -77,7 +78,7 @@ ACKNOWLEDGEMENT
 
 	- MD5 message-digest allgorithm used is public domain implementation
 	  written by Colin Plumb.
-	- SHA-256 message-digest algorithm used is public domain implementation
+	- SHA-2 message-digest algorithm used is public domain implementation
 	  by D. J. Bernstein (from NaCl library).
 
 

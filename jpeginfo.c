@@ -39,6 +39,7 @@
 #include <jerror.h>
 
 #include "sha256/crypto_hash_sha256.h"
+#include "sha512/crypto_hash_sha512.h"
 #include "md5.h"
 #include "jpeginfo.h"
 
@@ -97,6 +98,7 @@ int longinfo_mode = 0;
 int input_from_file = 0;
 int md5_mode = 0;
 int sha256_mode = 0;
+int sha512_mode = 0;
 int stdin_mode = 0;
 int csv_mode = 0;
 int json_mode = 0;
@@ -116,6 +118,7 @@ static struct option long_options[] = {
 	{"info",0,0,'i'},
 	{"md5",0,0,'5'},
 	{"sha256",0,0,'2'},
+	{"sha512",0,&sha512_mode,1},
 	{"version",0,0,'V'},
 	{"comments",0,0,'C'},
 	{"csv",0,0,'s'},
@@ -188,6 +191,7 @@ void print_usage(void)
 	fprintf(stderr,
 		"Usage: jpeginfo [options] <filenames>\n\n"
 		"  -2, --sha256    Calculate SHA-256 checksum for each file.\n"
+		"      --sha512    Calculate SHA-512 checksum for each file.\n"
 		"  -5, --md5       Calculate MD5 checksum for each file.\n"
 		"  -c, --check     Check files also for errors.\n"
 		"  -C, --comments  Display comments (from COM markers)\n"
@@ -487,18 +491,32 @@ void print_jpeg_info(struct jpeg_info *info)
 
 	if ((header_mode || json_mode) && !header_printed) {
 		if (csv_mode) {
-			printf("filename,size,hash,width,height,color_depth,type,progressive_normal,extra_info,comments,status,status_detail\n");
+			printf("filename,size,");
+			if (md5_mode)
+				printf("md5");
+			else if (sha256_mode)
+				printf("sha256");
+			else
+				printf("sha512");
+			printf("_hash,width,height,color_depth,type,progressive_normal,extra_info,comments,status,status_detail\n");
 		}
 		else if (json_mode) {
 			printf("[\n");
 		}
 		else if (list_mode) {
 			printf("  W  x  H   Color  Type P ");
-			if (longinfo_mode) printf("ExtraInfo            ");
+			if (longinfo_mode)
+				printf("ExtraInfo            ");
 			printf("  Size  ");
-			if (md5_mode) printf("MD5                              ");
-			if (sha256_mode) printf("SHA-256                                                          ");
-			if (com_mode) printf("Comments                         ");
+			if (md5_mode)
+				printf("MD5                              ");
+			if (sha256_mode)
+				printf("SHA-256                                                          ");
+			if (sha512_mode)
+				printf("SHA-512                                                          "
+				        "                                                                ");
+			if (com_mode)
+				printf("Comments                         ");
 			printf("Filename                         ");
 			if (check_mode)
 				printf("Status  Details");
@@ -506,11 +524,18 @@ void print_jpeg_info(struct jpeg_info *info)
 		}
 		else {
 			printf("Filename                           W  x  H   Color  Type P ");
-			if (longinfo_mode) printf("ExtraInfo            ");
+			if (longinfo_mode)
+				printf("ExtraInfo            ");
 			printf("  Size  ");
-			if (md5_mode) printf("MD5                              ");
-			if (sha256_mode) printf("SHA-256                                                          ");
-			if (com_mode) printf("Comments                         ");
+			if (md5_mode)
+				printf("MD5                              ");
+			if (sha256_mode)
+				printf("SHA-256                                                          ");
+			if (sha512_mode)
+				printf("SHA-512                                                          "
+					"                                                                ");
+			if (com_mode)
+				printf("Comments                         ");
 			if (check_mode)
 				printf("Status  Details");
 			printf("\n");
@@ -708,18 +733,21 @@ int main(int argc, char **argv)
 		}
 
 		/* Calculate hash (message-digest) of the input file */
-		if (md5_mode || sha256_mode) {
-			unsigned char digest[32];
-			char digest_text[65];
+		if (md5_mode || sha256_mode || sha512_mode) {
+			unsigned char digest[64];
+			char digest_text[128 + 1];
 
 			if (md5_mode) {
 				MD5Init(MD5);
 				MD5Update(MD5, inbuf, file_size);
 				MD5Final(digest, MD5);
 				digest2str(digest, digest_text, 16);
-			} else {
+			} else if (sha256_mode) {
 				crypto_hash_sha256(digest, inbuf, file_size);
 				digest2str(digest, digest_text, 32);
+			} else {
+				crypto_hash_sha512(digest, inbuf, file_size);
+				digest2str(digest, digest_text, 64);
 			}
 			info->digest = strdup(digest_text);
 		}

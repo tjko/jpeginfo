@@ -170,7 +170,7 @@ void print_version()
 #endif
 	printf(COPYRIGHT "\n\n");
 	printf("This program comes with ABSOLUTELY NO WARRANTY. This is free software,\n"
-		"and you are welcome to redistirbute it under certain conditions.\n"
+		"and you are welcome to redistribute it under certain conditions.\n"
 		"See the GNU General Public License for more details.\n\n");
 
 	printf("\nlibjpeg version: %s\n%s\n",
@@ -204,8 +204,8 @@ void print_usage(void)
 		"                  Defines which jpegs to remove (when using"
 		" the -d option).\n"
 		"                  Mode can be one of the following:\n"
-		"                    erronly     only files with serious errrors\n"
-		"                    all         files ontaining warnings or errors (default)\n"
+		"                    erronly     only files with serious errors\n"
+		"                    all         files containing warnings or errors (default)\n"
 		"  -q, --quiet     Quiet mode, output just jpeg infos\n"
 		"  -s, --csv       Comma separated (CSV) output style.\n"
 		"  -v, --verbose   Enable verbose mode (positively chatty)\n"

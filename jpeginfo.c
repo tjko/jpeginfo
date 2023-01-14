@@ -41,6 +41,7 @@
 #include "sha256/crypto_hash_sha256.h"
 #include "sha512/crypto_hash_sha512.h"
 #include "md5.h"
+#include "jpegmarker.h"
 #include "jpeginfo.h"
 
 
@@ -66,53 +67,6 @@ typedef struct my_error_mgr * my_error_ptr;
 
 static struct jpeg_decompress_struct cinfo;
 static struct my_error_mgr jerr;
-
-struct marker_name {
-	unsigned char marker;
-	char *name;
-};
-
-struct marker_name jpeg_marker_names[] = {
-	{ JPEG_COM,		"COM" },
-	{ JPEG_APP0 + 0,	"APP0" },
-	{ JPEG_APP0 + 1,	"APP1" },
-	{ JPEG_APP0 + 2,	"APP2" },
-	{ JPEG_APP0 + 3,	"APP3" },
-	{ JPEG_APP0 + 4,	"APP4" },
-	{ JPEG_APP0 + 5,	"APP5" },
-	{ JPEG_APP0 + 6,	"APP6" },
-	{ JPEG_APP0 + 7,	"APP7" },
-	{ JPEG_APP0 + 8,	"APP8" },
-	{ JPEG_APP0 + 9,	"APP9" },
-	{ JPEG_APP0 + 10,	"APP10" },
-	{ JPEG_APP0 + 11,	"APP11" },
-	{ JPEG_APP0 + 12,	"APP12" },
-	{ JPEG_APP0 + 13,	"APP13" },
-	{ JPEG_APP0 + 14,	"APP14" },
-	{ JPEG_APP0 + 15,	"APP15" },
-	{ 0, 0 }
-};
-
-
-struct jpeg_special_marker_type {
-	unsigned int marker;
-	char *name;
-	unsigned int ident_len;
-	char *ident_str;
-};
-
-struct jpeg_special_marker_type jpeg_special_marker_types[] = {
-	{ JPEG_APP0,		"JFIF",		5,	"JFIF\0" },
-	{ JPEG_APP0,		"JFXX",		5,	"JFXX\0" },
-	{ JPEG_APP0 + 1,	"Exif",		6,	"Exif\0\0" },
-	{ JPEG_APP0 + 1,	"XMP",		29,	"http://ns.adobe.com/xap/1.0/\0" },
-	{ JPEG_APP0 + 2,	"ICC",		12,	"ICC_PROFILE\0" },
-	{ JPEG_APP0 + 13,	"IPTC",		0,	NULL },
-	{ JPEG_APP0 + 14,	"Adobe",	5,	"Adobe" },
-	{ 0, NULL, 0, NULL }
-};
-
-#define JPEG_SPECIAL_MARKER_TYPES_LEN (sizeof(jpeg_special_marker_types)/sizeof(struct jpeg_special_marker_type))
 
 struct jpeg_info {
 	int width;
@@ -394,43 +348,6 @@ void free_jpeg_info(struct jpeg_info *info)
 }
 
 
-const char* jpeg_marker_name(unsigned int marker)
-{
-	int i = 0;
-
-	while (jpeg_marker_names[i].name) {
-		if (jpeg_marker_names[i].marker == marker)
-			return jpeg_marker_names[i].name;
-		i++;
-	}
-
-	return "Unknown";
-}
-
-
-int jpeg_special_marker(jpeg_saved_marker_ptr marker)
-{
-	int i = 0;
-
-	if (!marker)
-		return -1;
-
-	while (jpeg_special_marker_types[i].name) {
-		struct jpeg_special_marker_type *m = &jpeg_special_marker_types[i];
-
-		if (marker->marker == m->marker && marker->data_length >= m->ident_len) {
-			if (m->ident_len < 1)
-				return i;
-			if (!memcmp(marker->data, m->ident_str, m->ident_len))
-				return i;
-		}
-		i++;
-	}
-
-	return -2;
-}
-
-
 void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *info)
 {
 	jpeg_saved_marker_ptr cmarker;
@@ -440,26 +357,27 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	int marker_in_count = 0;
 	int comment_count = 0;
 	unsigned long marker_in_size = 0;
-	char seen[JPEG_SPECIAL_MARKER_TYPES_LEN];
+	char *seen;
+	size_t marker_types = jpeg_special_marker_types_count();
 
 	if (!cinfo || !info)
 		return;
 
-	memset(seen, 0, sizeof(seen));
+	if ((seen = malloc(marker_types)) == NULL)
+		no_memory();
+	memset(seen, 0, marker_types);
 
 	info->width = (int)cinfo->image_width;
 	info->height = (int)cinfo->image_height;
 	info->color_depth = (int)cinfo->num_components * 8;
 	info->progressive = (cinfo->progressive_mode ? 1 : 0);
 
-
 	strncopy(info_str, (cinfo->arith_code ? "Arithmetic" : "Huffman"), sizeof(info_str));
 	comment_str[0]=0;
 	marker_str[0]=0;
 
-	/* Check for Exif/IPTC/ICC/XMP/etc. markers */
+	/* Check for special (Exif/IPTC/ICC/XMP/etc...) markers */
 	cmarker=cinfo->marker_list;
-
 	while (cmarker) {
 		marker_in_count++;
 		marker_in_size+=cmarker->data_length;
@@ -518,6 +436,8 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	info->type = strdup(marker_str);
 	info->info = strdup(info_str);
 	info->comments = strdup(comment_str);
+
+	free(seen);
 }
 
 

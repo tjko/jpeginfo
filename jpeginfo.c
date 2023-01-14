@@ -475,7 +475,7 @@ void print_jpeg_info(struct jpeg_info *info)
 			printf("[\n");
 		}
 		else if (list_mode) {
-			printf("  W  x  H   Color P Markers              ");
+			printf("  W  x  H   Color P Markers                  ");
 			if (longinfo_mode)
 				printf("ExtraInfo            ");
 			printf("   Size ");
@@ -494,7 +494,7 @@ void print_jpeg_info(struct jpeg_info *info)
 			printf("\n");
 		}
 		else {
-			printf("Filename                           W  x  H   Color P Markers              ");
+			printf("Filename                           W  x  H   Color P Markers                  ");
 			if (longinfo_mode)
 				printf("ExtraInfo            ");
 			printf("   Size ");
@@ -563,7 +563,7 @@ void print_jpeg_info(struct jpeg_info *info)
 			);
 	}
 	else if (list_mode) {
-		printf("%4d x %4d %2dbit %c %-20s ",
+		printf("%4d x %4d %2dbit %c %-24s ",
 			info->width,
 			info->height,
 			info->color_depth,
@@ -585,7 +585,7 @@ void print_jpeg_info(struct jpeg_info *info)
 			);
 	}
 	else {
-		printf("%-32s %4d x %4d %2dbit %c %-20s ",
+		printf("%-32s %4d x %4d %2dbit %c %-24s ",
 			info->filename,
 			info->width,
 			info->height,

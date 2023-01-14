@@ -67,6 +67,53 @@ typedef struct my_error_mgr * my_error_ptr;
 static struct jpeg_decompress_struct cinfo;
 static struct my_error_mgr jerr;
 
+struct marker_name {
+	unsigned char marker;
+	char *name;
+};
+
+struct marker_name jpeg_marker_names[] = {
+	{ JPEG_COM,		"COM" },
+	{ JPEG_APP0 + 0,	"APP0" },
+	{ JPEG_APP0 + 1,	"APP1" },
+	{ JPEG_APP0 + 2,	"APP2" },
+	{ JPEG_APP0 + 3,	"APP3" },
+	{ JPEG_APP0 + 4,	"APP4" },
+	{ JPEG_APP0 + 5,	"APP5" },
+	{ JPEG_APP0 + 6,	"APP6" },
+	{ JPEG_APP0 + 7,	"APP7" },
+	{ JPEG_APP0 + 8,	"APP8" },
+	{ JPEG_APP0 + 9,	"APP9" },
+	{ JPEG_APP0 + 10,	"APP10" },
+	{ JPEG_APP0 + 11,	"APP11" },
+	{ JPEG_APP0 + 12,	"APP12" },
+	{ JPEG_APP0 + 13,	"APP13" },
+	{ JPEG_APP0 + 14,	"APP14" },
+	{ JPEG_APP0 + 15,	"APP15" },
+	{ 0, 0 }
+};
+
+
+struct jpeg_special_marker_type {
+	unsigned int marker;
+	char *name;
+	unsigned int ident_len;
+	char *ident_str;
+};
+
+struct jpeg_special_marker_type jpeg_special_marker_types[] = {
+	{ JPEG_APP0,		"JFIF",		5,	"JFIF\0" },
+	{ JPEG_APP0,		"JFXX",		5,	"JFXX\0" },
+	{ JPEG_APP0 + 1,	"Exif",		6,	"Exif\0\0" },
+	{ JPEG_APP0 + 1,	"XMP",		29,	"http://ns.adobe.com/xap/1.0/\0" },
+	{ JPEG_APP0 + 2,	"ICC",		12,	"ICC_PROFILE\0" },
+	{ JPEG_APP0 + 13,	"IPTC",		0,	NULL },
+	{ JPEG_APP0 + 14,	"Adobe",	5,	"Adobe" },
+	{ 0, NULL, 0, NULL }
+};
+
+#define JPEG_SPECIAL_MARKER_TYPES_LEN (sizeof(jpeg_special_marker_types)/sizeof(struct jpeg_special_marker_type))
+
 struct jpeg_info {
 	int width;
 	int height;
@@ -347,22 +394,58 @@ void free_jpeg_info(struct jpeg_info *info)
 }
 
 
+const char* jpeg_marker_name(unsigned int marker)
+{
+	int i = 0;
+
+	while (jpeg_marker_names[i].name) {
+		if (jpeg_marker_names[i].marker == marker)
+			return jpeg_marker_names[i].name;
+		i++;
+	}
+
+	return "Unknown";
+}
+
+
+int jpeg_special_marker(jpeg_saved_marker_ptr marker)
+{
+	int i = 0;
+
+	if (!marker)
+		return -1;
+
+	while (jpeg_special_marker_types[i].name) {
+		struct jpeg_special_marker_type *m = &jpeg_special_marker_types[i];
+
+		if (marker->marker == m->marker && marker->data_length >= m->ident_len) {
+			if (m->ident_len < 1)
+				return i;
+			if (!memcmp(marker->data, m->ident_str, m->ident_len))
+				return i;
+		}
+		i++;
+	}
+
+	return -2;
+}
+
+
 void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *info)
 {
 	jpeg_saved_marker_ptr cmarker;
 	char marker_str[256], info_str[256];
 	char comment_str[1024], tmp[64];
+	int special;
 	int marker_in_count = 0;
 	int comment_count = 0;
 	unsigned long marker_in_size = 0;
-	int exif_seen = 0;
-	int iptc_seen = 0;
-	int icc_seen = 0;
-	int xmp_seen = 0;
-	int jfxx_seen = 0;
+	char seen[JPEG_SPECIAL_MARKER_TYPES_LEN];
 
 	if (!cinfo || !info)
 		return;
+
+	memset(seen, 0, sizeof(seen));
 
 	info->width = (int)cinfo->image_width;
 	info->height = (int)cinfo->image_height;
@@ -380,42 +463,19 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	while (cmarker) {
 		marker_in_count++;
 		marker_in_size+=cmarker->data_length;
+		special = jpeg_special_marker(cmarker);
 
-		if (verbose_mode > 1)
-			fprintf(stderr, "Found marker 0x%X: original_length=%u, data_length=%u\n",
-				cmarker->marker, cmarker->original_length, cmarker->data_length);
+		if (verbose_mode)
+			fprintf(stderr, "Found marker %s (0x%X): type=%s, original_length=%u, data_length=%u\n",
+				jpeg_marker_name(cmarker->marker), cmarker->marker,
+				(special >= 0 ? jpeg_special_marker_types[special].name : "Unknown"),
+				cmarker->original_length, cmarker->data_length);
 
-		if (cmarker->marker == EXIF_JPEG_MARKER && !exif_seen &&
-			cmarker->data_length >= EXIF_IDENT_STRING_SIZE &&
-			!memcmp(cmarker->data,EXIF_IDENT_STRING,EXIF_IDENT_STRING_SIZE)) {
-			str_add_list(marker_str, sizeof(marker_str), "Exif", ",");
-			exif_seen = 1;
-		}
-
-		if (cmarker->marker == IPTC_JPEG_MARKER && !iptc_seen) {
-			str_add_list(marker_str, sizeof(marker_str), "IPTC", ",");
-			iptc_seen = 1;
-		}
-
-		if (cmarker->marker == ICC_JPEG_MARKER && !icc_seen &&
-			cmarker->data_length >= ICC_IDENT_STRING_SIZE &&
-			!memcmp(cmarker->data,ICC_IDENT_STRING,ICC_IDENT_STRING_SIZE)) {
-			str_add_list(marker_str, sizeof(marker_str), "ICC", ",");
-			icc_seen = 1;
-		}
-
-		if (cmarker->marker == XMP_JPEG_MARKER && !xmp_seen &&
-			cmarker->data_length >= XMP_IDENT_STRING_SIZE &&
-			!memcmp(cmarker->data,XMP_IDENT_STRING,XMP_IDENT_STRING_SIZE)) {
-			str_add_list(marker_str, sizeof(marker_str), "XMP", ",");
-			xmp_seen = 1;
-		}
-
-		if (cmarker->marker == JFXX_JPEG_MARKER && !jfxx_seen &&
-			cmarker->data_length >= JFXX_IDENT_STRING_SIZE &&
-			!memcmp(cmarker->data, JFXX_IDENT_STRING, JFXX_IDENT_STRING_SIZE)) {
-			str_add_list(marker_str, sizeof(marker_str), "JFXX", ",");
-			jfxx_seen = 1;
+		if (special >= 0) {
+			if (!seen[special])
+				str_add_list(marker_str, sizeof(marker_str),
+					jpeg_special_marker_types[special].name, ",");
+			seen[special]++;
 		}
 
 		if (cmarker->marker == JPEG_COM && cmarker->data_length > 0) {
@@ -443,10 +503,7 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 
 	if (comment_count > 0)
 		str_add_list(marker_str, sizeof(marker_str), "COM", ",");
-	if (cinfo->saw_Adobe_marker)
-		str_add_list(marker_str, sizeof(marker_str), "Adobe ", ",");
-	if (cinfo->saw_JFIF_marker)
-		str_add_list(marker_str, sizeof(marker_str), "JFIF ", ",");
+
 
 	if (cinfo->density_unit == 1 || cinfo->density_unit == 2) {
 		snprintf(tmp, sizeof(tmp), "%ddp%c", MIN(cinfo->X_density, cinfo->Y_density),

@@ -1,0 +1,12 @@
+*~
+Makefile
+config.h
+config.status
+config.log
+config.cache
+jpeginfo
+jpeginfo.prn
+jpeginfo.ps
+jpeginfo.txt
+*.o
+*.jpg

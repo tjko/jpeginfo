@@ -1,18 +1,18 @@
 .TH JPEGINFO 1 "06 Jan 2023"
-.UC 4 
-.SH NAME 
+.UC 4
+.SH NAME
 jpeginfo \- prints
-information and tests integrity of JPEG/JFIF files.  
+information and tests integrity of JPEG/JFIF files.
 
-.SH SYNOPSIS 
-.B jpeginfo 
-[ 
-.B options 
-] [ 
-.B filenames 
-] 
+.SH SYNOPSIS
+.B jpeginfo
+[
+.B options
+] [
+.B filenames
+]
 
-.SH DESCRIPTION 
+.SH DESCRIPTION
 .I jpeginfo
 is used to generate informative listings of jpeg files, and
 also to check jpeg files for errors. Program also supports automatic
@@ -63,7 +63,7 @@ Example:
 .RS 0
 4032 x 3024 24bit JFIF  N 2416729 IMG_6387.jpeg
 .RS 0
-4032 x 3024 24bit Exif  N 2510587 IMG_6806.jpeg 
+4032 x 3024 24bit Exif  N 2510587 IMG_6806.jpeg
 .RS 0
 
 
@@ -104,11 +104,11 @@ Calculates SHA-256 checksum for each file.
 Calculates SHA-512 checksum for each file.
 .TP 0.6i
 .B -5, --md5
-Calculates MD5 checksum for each file. 
+Calculates MD5 checksum for each file.
 .TP 0.6i
 .B -i, --info
-Displays even more information about each picture. Prints image coding 
-(Huffman/Arithmetic), density (in dpi/dpc), and whether CCIR601 sampling 
+Displays even more information about each picture. Prints image coding
+(Huffman/Arithmetic), density (in dpi/dpc), and whether CCIR601 sampling
 was used or not.
 .TP 0.6i
 .B -j, --json
@@ -130,10 +130,10 @@ Quiet mode, output just the jpeg infos.
 Comma separated values (CSV) output format.
 .TP 0.6i
 .B -m<mode>, --mode=<mode>
-Sets the delete mode, meaningful only when used with 
+Sets the delete mode, meaningful only when used with
 .I
 -d
-flag. 
+flag.
 .I Mode
 can be one of the following:
 .RS
@@ -153,7 +153,7 @@ Read input from standard input (instead of a file).
 .SH BUGS
 None, so far :-)
 
-.SH "SEE ALSO" 
+.SH "SEE ALSO"
 jpegoptim(1)
 
 .SH AUTHOR

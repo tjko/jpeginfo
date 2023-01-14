@@ -1,7 +1,6 @@
 #########################################################################
-# $Id$ 
-# 
-# Makefile for jpeginfo 
+# Makefile for jpeginfo
+#
 #
 Version = 1.7.0
 PKGNAME = jpeginfo
@@ -30,7 +29,7 @@ mandir = $(prefix)/share/man
 
 
 
-CC        = @CC@ 
+CC        = @CC@
 XCPPFLAGS = @CPPFLAGS@
 CFLAGS    = @CFLAGS@ $(XCPPFLAGS) $(DEFS)
 ifeq ($(CC),gcc)
@@ -52,16 +51,16 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 # should be no reason to modify lines below this
 #########################################################################
 
-DIRNAME = $(shell basename `pwd`) 
-DISTNAME  = $(PKGNAME)-$(Version)
+DIRNAME := $(shell basename `pwd`)
+DISTNAME := $(PKGNAME)-$(Version)
 
 OBJS = $(PKGNAME).o misc.o @GNUGETOPT@ md5.o sha256/hash.o sha256/blocks.o \
 	sha512/hash.o sha512/blocks.o
 
-$(PKGNAME):	$(OBJS) 
-	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LDFLAGS) $(LIBS) 
+$(PKGNAME):	$(OBJS)
+	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LDFLAGS) $(LIBS)
 
-all:	$(PKGNAME) 
+all:	$(PKGNAME)
 
 strip:
 	for i in $(PKGNAME) ; do [ -x $$i ] && $(STRIP) $$i ; done
@@ -93,11 +92,10 @@ install.dirs:
 	$(INSTALL) -d -m 755 $(INSTALL_ROOT)/$(mandir)/man1
 
 # a tradition !
-love:	
+love:
 	@echo "Not War - Eh?"
 
 spell:
 	codespell -S .git,tools
 
 # eof
-

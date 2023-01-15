@@ -66,7 +66,7 @@ const struct jpeg_special_marker_type jpeg_special_marker_types[] = {
 	{ JPEG_APP0 + 1,	"Exif",		6,	"Exif\0\0" },
 	{ JPEG_APP0 + 1,	"XMP",		29,	"http://ns.adobe.com/xap/1.0/\0" },
 	{ JPEG_APP0 + 2,	"ICC",		12,	"ICC_PROFILE\0" },
-	{ JPEG_APP0 + 13,	"IPTC",		0,	NULL },
+	{ JPEG_APP0 + 13,	"IPTC",		14,	"Photoshop 3.0\0" },
 	{ JPEG_APP0 + 14,	"Adobe",	5,	"Adobe" },
 	{ 0, NULL, 0, NULL }
 };

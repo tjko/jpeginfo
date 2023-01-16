@@ -1,7 +1,8 @@
 dnl $Id$
 dnl 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(jpeginfo.c)
+AC_INIT
+AC_CONFIG_SRCDIR([jpeginfo.c])
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_AUX_DIR(tools)
 
@@ -63,23 +64,21 @@ dnl own tests
 
 AC_MSG_CHECKING([for broken jmorecfg.h (METHODDEF)])
 AC_CACHE_VAL(jpeginfo_cv_broken_methoddef,
-[AC_TRY_RUN([
+[AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <jpeglib.h>
 METHODDEF(void) foo(void) { };
 int main(void)
 {
   return 0;
-}],
-jpeginfo_cv_broken_methoddef=no,
-jpeginfo_cv_broken_methoddef=yes,
-jpeginfo_cv_broken_methoddef=no)])
+}]])],[jpeginfo_cv_broken_methoddef=no],[jpeginfo_cv_broken_methoddef=yes],[jpeginfo_cv_broken_methoddef=no])])
 if test $jpeginfo_cv_broken_methoddef = yes; then
   AC_DEFINE(BROKEN_METHODDEF)
 fi
 AC_MSG_RESULT($jpeginfo_cv_broken_methoddef)
 
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
 
 

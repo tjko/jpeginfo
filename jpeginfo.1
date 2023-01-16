@@ -1,4 +1,4 @@
-.TH JPEGINFO 1 "06 Jan 2023"
+.TH JPEGINFO 1 "15 Jan 2023"
 .UC 4
 .SH NAME
 jpeginfo \- prints
@@ -18,19 +18,38 @@ is used to generate informative listings of jpeg files, and
 also to check jpeg files for errors. Program also supports automatic
 deletion of broken jpegs.
 
+.SH OUTPUT FORMATS
+.I jpeginfo
+supports several different output formats. Default formats are meant to be displayed
+on screen, while there is also CSV and JSON formats that are easier to parse by another program.
+
+.PP
+While CSV and JSON formats always display all "columns", other formats don't display columns that
+do not have any data. For example if
+.I -c
+option is not used to check JPEG integrity, then the `status` (and `details`) columns won't be displayed.
+
+.PP
+Similary if MD5/SHA-2 checksum (hash) is not calculated, then that column will not be shown.
+
 .SS Default Format
 .PP
 Default output format:
 
-<filename> <image_width> x <image_height> <colordepth> <image_type> <progresive_vs_normal> <size>
+<filename> <image_width> x <image_height> <colordepth> <progresive_vs_normal> <markers> <size>
 
 Example:
 .PP
 .RS 0
-IMG_6387.jpeg 4032 x 3024 24bit JFIF  N 2416729
+$ jpeginfo *.jpeg
 .RS 0
-IMG_6806.jpeg 4032 x 3024 24bit Exif  N 2510587
+IMG_1439.jpeg                    3282 x 3024 24bit N JFIF,Exif                2961607
 .RS 0
+IMG_1560.jpeg                    3815 x 2862 24bit N JFIF                     1045063
+.RS 0
+IMG_2520.jpeg                    3964 x 2900 24bit N JFIF,Exif,ICC            4712099
+.RS 0
+.RE
 
 .SS Extra information format
 .PP
@@ -38,14 +57,18 @@ Additional information can be displayed using
 .I -i
 option:
 
-<filename> <image_width> x <image_height> <colordepth> <image_type> <progresive_vs_normal> <additonal_info> <size>
+<filename> <image_width> x <image_height> <colordepth> <progresive_vs_normal> <markers> <extra_info> <size>
 
 Example:
 .PP
 .RS 0
-IMG_6387.jpeg 4032 x 3024 24bit JFIF  Normal Huffman 2416729
+$ jpeginfo -i *.jpeg
 .RS 0
-IMG_6806.jpeg 4032 x 3024 24bit Exif  Normal Huffman 2510587
+IMG_1439.jpeg                    3282 x 3024 24bit N JFIF,Exif                Huffman,300dpi       2961607
+.RS 0
+IMG_1560.jpeg                    3815 x 2862 24bit N JFIF                     Huffman,300dpi       1045063
+.RS 0
+IMG_2520.jpeg                    3964 x 2900 24bit N JFIF,Exif,ICC            Huffman,300dpi       4712099
 .RS 0
 .RE
 
@@ -55,17 +78,21 @@ Option
 .I -l
 moves filename to be last column, resulting output that is bit like output from `ls -l` command:
 
-<image_width> x <image_height> <colordepth> <image_type> <progresive_vs_normal> <size> <filename>
+<image_width> x <image_height> <colordepth> <progresive_vs_normal> <markers> <size> <filename>
 
 Example:
 
 .PP
 .RS 0
-4032 x 3024 24bit JFIF  N 2416729 IMG_6387.jpeg
+$ jpeginfo -l *.jpeg
 .RS 0
-4032 x 3024 24bit Exif  N 2510587 IMG_6806.jpeg
+3282 x 3024 24bit N JFIF,Exif                2961607 IMG_1439.jpeg
 .RS 0
-
+3815 x 2862 24bit N JFIF                     1045063 IMG_1560.jpeg
+.RS 0
+3964 x 2900 24bit N JFIF,Exif,ICC            4712099 IMG_2520.jpeg
+.RS 0
+.RE
 
 .SH OPTIONS
 .PP
@@ -150,8 +177,59 @@ Only files with serious errors (ie. cannot be decoded at all).
 Read input from standard input (instead of a file).
 
 
-.SH BUGS
-None, so far :-)
+.SH Known JPEG Markers
+.I jpegoptim
+scans through application (APP) markers in the JPEG image and will display information about "well known" markers
+found in the image. Markers found in image are listed in the "markers" column.
+
+.SS Known Application Markers
+
+Currently
+.I jpegoptim
+recognizes following common application markers found in JPEG images:
+.RS 1.2i
+.TS
+tab(@), left, box;
+c | c
+lB | l.
+Marker Name@Description
+_
+JFIF@JPEG File Interchange Format
+JFXX@JFIF Extension
+Exif@Exchangeable Image File Format
+XMP@Extensible Metadata Platform (Adobe)
+ICC@ICC Color Profile
+IPTC@IPTC (Adobe Photoshop)
+Adobe@Adobe
+AdobeCM@Adobe Color Management
+CIFF@Canon Raw
+AVI1@AVI Video
+QVCI@Casio QVCI
+FLIR@FLIR
+FPXR@Kodak FlashPix
+MPF@CIPA Multi-Picture Format
+Meta@Kodak Meta
+Stim@CIPA Stereo Still Image
+JPS@JPEG Stereo Image
+Scalado@Scalado
+RMETA@Ricoh Meta
+EPPIM@Toshiba PrintIM
+NITF@National Imagery Transmission Format
+GoPro@GoPro
+SPIFF@JPEG Still Picture Interchange File Format
+AROT@Apple
+HDR@JPEG-HDR
+.TE
+.RE
+
+.SS Other Markers
+.PP
+If image contained any unrecognized application (APP) markers then "UNKNOWN" is added to the list of found markers.
+.PP
+Additionally if image contained any comment (COM) markers then "COM" is added to the list of found markers.
+
+
+
 
 .SH "SEE ALSO"
 jpegoptim(1)

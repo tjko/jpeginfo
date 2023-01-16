@@ -93,7 +93,7 @@ size_t jpeg_special_marker_types_count()
 	while (jpeg_special_marker_types[i].name)
 		i++;
 
-	return (i > 0 ? i - 1 : 0);
+	return i;
 }
 
 int jpeg_special_marker(jpeg_saved_marker_ptr marker)

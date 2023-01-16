@@ -240,6 +240,8 @@ void parse_args(int argc, char **argv)
 				fprintf(stderr, "Unknown parameter for -m, --mode.\n");
 			break;
 		case 'f':
+			if (verbose_mode)
+				fprintf(stderr, "Reading input filenames from: '%s'\n", optarg);
 			if (!strcmp(optarg, "-")) listfile=stdin;
 			else if ((listfile=fopen(optarg, "r")) == NULL) {
 				fprintf(stderr, "Cannot open file '%s'.\n", optarg);
@@ -290,13 +292,13 @@ void parse_args(int argc, char **argv)
 			header_mode=1;
 			break;
 		case '?':
-			break;
+			exit(1);
 
 		}
 	}
 
 	/* check for '-' option indicating input is from stdin... */
-	i=1;
+	i = optind;
 	while (argv[i]) {
 		if (argv[i][0]=='-' && argv[i][1]==0)
 			stdin_mode=1;
@@ -307,12 +309,11 @@ void parse_args(int argc, char **argv)
 		fprintf(stderr, "jpeginfo: delete mode enabled (%s)\n",
 			(!del_mode ? "normal" : "errors only"));
 
-	if (argc <= optind) {
+	if (argc <= optind && !input_from_file) {
 		if (quiet_mode < 2) fprintf(stderr, "jpeginfo: file arguments missing\n"
 					"Try 'jpeginfo --help' for more information.\n");
 		exit(1);
 	}
-
 
 }
 
@@ -356,6 +357,7 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	int special;
 	int marker_in_count = 0;
 	int comment_count = 0;
+	int unknown_count = 0;
 	unsigned long marker_in_size = 0;
 	char *seen;
 	size_t marker_types = jpeg_special_marker_types_count();
@@ -395,33 +397,40 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 					jpeg_special_marker_types[special].name, ",");
 			seen[special]++;
 		}
+		else if (cmarker->marker == JPEG_COM) {
+			if (cmarker->data_length > 0) {
+				int o = 0;
+				for (int i = 0; i < cmarker->data_length; i++) {
+					char ch = cmarker->data[i];
+					if (!isprint(ch)) {
+						ch = '.';
+					}
+					if (o < sizeof(tmp) - 1) {
+						*(tmp + o++) = ch;
+					}
+				}
+				*(tmp + o) = 0;
 
-		if (cmarker->marker == JPEG_COM && cmarker->data_length > 0) {
-			int o = 0;
-			for (int i = 0; i < cmarker->data_length; i++) {
-				char ch = cmarker->data[i];
-				if (!isprint(ch)) {
-					ch = '.';
-				}
-				if (o < sizeof(tmp) - 1) {
-					*(tmp + o++) = ch;
-				}
+				str_add_list(comment_str, sizeof(comment_str), tmp, ",");
+				comment_count++;
 			}
-			*(tmp + o) = 0;
-
-			str_add_list(comment_str, sizeof(comment_str), tmp, ",");
-			comment_count++;
+		}
+		else {
+			unknown_count++;
 		}
 
 		cmarker=cmarker->next;
 	}
 
 	if (verbose_mode)
-		fprintf(stderr, "Found total of %d markers (total size %lu bytes)\n", marker_in_count, marker_in_size);
+		fprintf(stderr, "Found total of %d markers (total size %lu bytes), and %d unknown markers\n",
+			marker_in_count, marker_in_size, unknown_count);
 
 	if (comment_count > 0)
 		str_add_list(marker_str, sizeof(marker_str), "COM", ",");
 
+	if (unknown_count > 0)
+		str_add_list(marker_str, sizeof(marker_str), "UNKNOWN", ",");
 
 	if (cinfo->density_unit == 1 || cinfo->density_unit == 2) {
 		snprintf(tmp, sizeof(tmp), "%ddp%c", MIN(cinfo->X_density, cinfo->Y_density),
@@ -443,12 +452,14 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 
 const char *check_status_str(int check)
 {
-	if (check == 1)
+	switch (check) {
+	case 1:
 		return "OK";
-	else if (check == 2)
+	case 2:
 		return "WARNING";
-	else if (check == 3)
+	case 3:
 		return "ERROR";
+	}
 
 	return "";
 }
@@ -609,27 +620,35 @@ void print_jpeg_info(struct jpeg_info *info)
 }
 
 
+void clear_line_buffer(JSAMPARRAY buf)
+{
+	for (int i = 0; i < BUF_LINES; i++) {
+		if (buf[i])
+			free(buf[i]);
+		buf[i] = NULL;
+	}
+}
+
+
 /*****************************************************************************/
 int main(int argc, char **argv)
 {
-	MD5_CTX *MD5 = malloc(sizeof(MD5_CTX));
-	JSAMPARRAY buf = malloc(sizeof(JSAMPROW)*BUF_LINES);
-	struct jpeg_info *info = malloc(sizeof(struct jpeg_info));
+	char namebuf[MAXPATHLEN + 1];
+	JSAMPROW line_buffer[BUF_LINES];
+	JSAMPARRAY buf = line_buffer;
+	struct jpeg_info info;
 	volatile int i;
 	int j;
-	char namebuf[1024];
 	unsigned char *inbuf = NULL;
 	long long file_size;
 	size_t inbuffer_size;
 
-	if (!buf || !MD5 || !info)
-		no_memory();
 
+	/* Initialize memory structures... */
 	for(i = 0; i < BUF_LINES; i++) {
 		buf[i] = NULL;
 	}
-	clear_jpeg_info(info);
-
+	clear_jpeg_info(&info);
 	cinfo.err = jpeg_std_error(&jerr.pub);
 	jpeg_create_decompress(&cinfo);
 	jerr.pub.error_exit=my_error_exit;
@@ -641,10 +660,7 @@ int main(int argc, char **argv)
 
 	/* Loop to process input file(s) */
 	do {
-		if ((current = argv[i]) == NULL)
-			break;
-
-		free_jpeg_info(info);
+		free_jpeg_info(&info);
 
 		/* Open input file */
 		if (stdin_mode) {
@@ -658,8 +674,12 @@ int main(int argc, char **argv)
 				if (!fgetstr(namebuf, sizeof(namebuf), listfile))
 					break;
 				current=namebuf;
+			} else {
+				if ((current = argv[i]) == NULL)
+					break;
 			}
-			if (current[0]==0) continue;
+			if (*current == 0)
+				continue;
 
 			if (verbose_mode)
 				fprintf(stderr, "Reading file: %s\n", current);
@@ -674,30 +694,27 @@ int main(int argc, char **argv)
 			}
 			inbuffer_size = filesize(infile);
 		}
-		info->filename = strdup(current);
+		info.filename = strdup(current);
 
 		/* Read input file into a memory buffer */
 		if ((file_size = read_file(infile, inbuffer_size, &inbuf)) < 0)
 			no_memory();
 		fclose(infile);
-		info->size = file_size;
+		info.size = file_size;
 		last_error[0] = 0;
 
 		/* Error handler for (libjpeg) errors in decoding */
 		if (setjmp(jerr.setjmp_buffer)) {
-			info->check = 3;
-			info->error = strdup(last_error);
+			info.check = 3;
+			info.error = strdup(last_error);
 			if (verbose_mode)
 				fprintf(stderr, "Error decoding JPEG image: %s\n", last_error);
 			jpeg_abort_decompress(&cinfo);
-			for(j = 0; j < BUF_LINES; j++) {
-				if (buf[j]) {
-					free(buf[j]);
-					buf[j] = NULL;
-				}
-			}
+			clear_line_buffer(buf);
 			if (quiet_mode < 2)
-				print_jpeg_info(info);
+				print_jpeg_info(&info);
+			if (stdin_mode)
+				break;
 			if (delete_mode)
 				delete_file(current, verbose_mode, quiet_mode);
 			continue;
@@ -705,13 +722,14 @@ int main(int argc, char **argv)
 
 		/* Calculate hash (message-digest) of the input file */
 		if (md5_mode || sha256_mode || sha512_mode) {
+			MD5_CTX md5;
 			unsigned char digest[64];
 			char digest_text[128 + 1];
 
 			if (md5_mode) {
-				MD5Init(MD5);
-				MD5Update(MD5, inbuf, file_size);
-				MD5Final(digest, MD5);
+				MD5Init(&md5);
+				MD5Update(&md5, inbuf, file_size);
+				MD5Final(digest, &md5);
 				digest2str(digest, digest_text, 16);
 			} else if (sha256_mode) {
 				crypto_hash_sha256(digest, inbuf, file_size);
@@ -720,7 +738,7 @@ int main(int argc, char **argv)
 				crypto_hash_sha512(digest, inbuf, file_size);
 				digest2str(digest, digest_text, 64);
 			}
-			info->digest = strdup(digest_text);
+			info.digest = strdup(digest_text);
 		}
 
 		/* Read JPEG file header */
@@ -731,7 +749,7 @@ int main(int argc, char **argv)
 		}
 		jpeg_mem_src(&cinfo, inbuf, file_size);
 		jpeg_read_header(&cinfo, TRUE);
-		parse_jpeg_info(&cinfo, info);
+		parse_jpeg_info(&cinfo, &info);
 
 
 		/* Decode JPEG to check for errors in the file */
@@ -747,29 +765,24 @@ int main(int argc, char **argv)
 				if (!buf[j])
 					no_memory();
 			}
-
 			while (cinfo.output_scanline < cinfo.output_height) {
 				jpeg_read_scanlines(&cinfo, buf, BUF_LINES);
 			}
-
-			for(j = 0; j < BUF_LINES; j++) {
-				free(buf[j]);
-				buf[j] = NULL;
-			}
+			clear_line_buffer(buf);
 
 			jpeg_finish_decompress(&cinfo);
 			if (verbose_mode && global_error_counter > 0)
 				fprintf(stderr, "Warnings decoding JPEG image: %s\n", last_error);
-			info->check = (global_error_counter == 0 ? 1 : 2);
-			info->error = strdup(last_error);
-			print_jpeg_info(info);
-			if (delete_mode && !del_mode && info->check > 1)
+			info.check = (global_error_counter == 0 ? 1 : 2);
+			info.error = strdup(last_error);
+			print_jpeg_info(&info);
+			if (delete_mode && !del_mode && info.check > 1)
 					delete_file(current, verbose_mode, quiet_mode);
 		}
 		else {
 			/* When not checking integrity, just print out info we have. */
 			jpeg_abort_decompress(&cinfo);
-			print_jpeg_info(info);
+			print_jpeg_info(&info);
 		}
 
 	} while ((!stdin_mode && ++i<argc) || input_from_file);
@@ -779,10 +792,7 @@ int main(int argc, char **argv)
 
 	/* Free up allocated memory to keep MemorySanitizier happy :-) */
 	jpeg_destroy_decompress(&cinfo);
-	free_jpeg_info(info);
-	free(info);
-	free(MD5);
-	free(buf);
+	free_jpeg_info(&info);
 	if (inbuf)
 		free(inbuf);
 

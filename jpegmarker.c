@@ -80,7 +80,7 @@ const struct jpeg_special_marker_type jpeg_special_marker_types[] = {
 	{ JPEG_APP0 + 3,	"Stim",		5,	"Stim\0" },
 	{ JPEG_APP0 + 3,	"JPS",		8,	"_JPSJPS_" },
 	{ JPEG_APP0 + 4,	"Scalado",	8,	"SCALADO\0" },
-	{ JPEG_APP0 + 4,	"FXPR",		5,	"FXPR\0" },
+	{ JPEG_APP0 + 4,	"FPXR",		5,	"FPXR\0" },
 	{ JPEG_APP0 + 5,	"RMETA",	6,	"RMETA\0" },
 	{ JPEG_APP0 + 6,	"EPPIM",	6,	"EPPIM\0" },
 	{ JPEG_APP0 + 6,	"NITF",		5,	"NTIF\0" },

@@ -2,7 +2,7 @@
 # Makefile for jpeginfo
 #
 #
-Version = 1.7.0
+Version = 1.7.1
 PKGNAME = jpeginfo
 
 SHELL = /bin/sh
@@ -31,7 +31,7 @@ mandir = $(prefix)/share/man
 
 CC        = @CC@
 XCPPFLAGS = @CPPFLAGS@
-CFLAGS    = @CFLAGS@ $(XCPPFLAGS) $(DEFS)
+CFLAGS    = @CFLAGS@ $(XCPPFLAGS) $(DEFS) -I$(srcdir)
 ifeq ($(CC),gcc)
 CFLAGS	 += -Wall -Wformat -Werror=format-security
 #CFLAGS	 += -fno-omit-frame-pointer -D_FORTIFY_SOURCE=2
@@ -55,7 +55,9 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 DIRNAME := $(shell basename `pwd`)
 DISTNAME := $(PKGNAME)-$(Version)
 
-OBJS = $(PKGNAME).o jpegmarker.o misc.o @GNUGETOPT@ md5.o sha256/hash.o sha256/blocks.o \
+OBJS = $(PKGNAME).o jpegmarker.o misc.o @GNUGETOPT@ \
+	md5/md5.o \
+	sha256/hash.o sha256/blocks.o \
 	sha512/hash.o sha512/blocks.o
 
 $(PKGNAME):	$(OBJS)

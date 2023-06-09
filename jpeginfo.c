@@ -233,7 +233,7 @@ void parse_args(int argc, char **argv)
 
 	while(1) {
 		opt_index=0;
-		if ( (c=getopt_long(argc,argv, "livVdcChqm:f:52sH",
+		if ( (c=getopt_long(argc,argv, "livVdcChqm:f:52sHj",
 						long_options, &opt_index))  == -1)
 			break;
 		switch (c) {

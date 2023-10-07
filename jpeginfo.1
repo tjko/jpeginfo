@@ -229,6 +229,11 @@ If image contained any unrecognized application (APP) markers then "UNKNOWN" is 
 Additionally if image contained any comment (COM) markers then "COM" is added to the list of found markers.
 
 
+.SH EXIT STATUS
+
+Program returns 0 on successfull run. Non-zero exit status is returned if there were any errors.
+
+When using --check (or -c) option return value is non-zero if one or more of the files checked had any errors.
 
 
 .SH "SEE ALSO"

@@ -185,7 +185,7 @@ int crypto_hashblocks_sha256_ref(unsigned char *statebytes,const unsigned char *
     f += state[5];
     g += state[6];
     h += state[7];
-  
+
     state[0] = a;
     state[1] = b;
     state[2] = c;

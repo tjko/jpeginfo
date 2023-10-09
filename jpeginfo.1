@@ -36,7 +36,7 @@ Similarly if MD5/SHA-2 checksum (hash) is not calculated, then that column will 
 .PP
 Default output format:
 
-<filename> <image_width> x <image_height> <colordepth> <progresive_vs_normal> <markers> <size>
+<filename> <image_width> x <image_height> <colordepth> <progressive_vs_normal> <markers> <size>
 
 Example:
 .PP
@@ -57,7 +57,7 @@ Additional information can be displayed using
 .I -i
 option:
 
-<filename> <image_width> x <image_height> <colordepth> <progresive_vs_normal> <markers> <extra_info> <size>
+<filename> <image_width> x <image_height> <colordepth> <progressive_vs_normal> <markers> <extra_info> <size>
 
 Example:
 .PP
@@ -78,7 +78,7 @@ Option
 .I -l
 moves filename to be last column, resulting output that is bit like output from `ls -l` command:
 
-<image_width> x <image_height> <colordepth> <progresive_vs_normal> <markers> <size> <filename>
+<image_width> x <image_height> <colordepth> <progressive_vs_normal> <markers> <size> <filename>
 
 Example:
 
@@ -170,7 +170,7 @@ Files containing any type of errors/warnings, not necessary preventing
 the decoding. (default)
 .TP
 .B erronly
-Only files with serious errors (ie. cannot be decoded at all).
+Only files with serious errors (i.e. cannot be decoded at all).
 .RE
 .TP 0.6i
 .B -, --stdin
@@ -231,7 +231,7 @@ Additionally if image contained any comment (COM) markers then "COM" is added to
 
 .SH EXIT STATUS
 
-Program returns 0 on successfull run. Non-zero exit status is returned if there were any errors.
+Program returns 0 on successful run. Non-zero exit status is returned if there were any errors.
 
 When using --check (or -c) option return value is non-zero if one or more of the files checked had any errors.
 

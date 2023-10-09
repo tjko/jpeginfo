@@ -21,24 +21,15 @@
 #include <string.h>	/* for memcpy() */
 #endif
 
-/* Add prototype support.  */
-#ifndef PROTO
-#if defined (USE_PROTOTYPES) ? USE_PROTOTYPES : defined (__STDC__)
-#define PROTO(ARGS) ARGS
-#else
-#define PROTO(ARGS) ()
-#endif
-#endif
-
 #include "md5.h"
 
-void byteReverse PROTO ((unsigned char *buf, unsigned longs));
+void byteReverse(unsigned char *buf, unsigned longs);
 
 #ifndef ASM_MD5
 /*
  * Note: this code is harmless on little-endian machines.
  */
-void byteReverse (unsigned char *buf, unsigned longs)
+void byteReverse(unsigned char *buf, unsigned longs)
 {
 	uint32 t;
 	do {

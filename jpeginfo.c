@@ -54,11 +54,6 @@
 #define HOST_TYPE ""
 #endif
 
-#ifdef BROKEN_METHODDEF
-#undef METHODDEF
-#define METHODDEF(x) static x
-#endif
-
 struct my_error_mgr {
 	struct jpeg_error_mgr pub;
 	jmp_buf setjmp_buffer;
@@ -135,8 +130,7 @@ static struct option long_options[] = {
 /*****************************************************************************/
 
 
-METHODDEF(void)
-	my_error_exit (j_common_ptr cinfo)
+static void my_error_exit (j_common_ptr cinfo)
 {
 	my_error_ptr myerr = (my_error_ptr)cinfo->err;
 	(*cinfo->err->output_message) (cinfo);
@@ -144,8 +138,7 @@ METHODDEF(void)
 }
 
 
-METHODDEF(void)
-	my_output_message (j_common_ptr cinfo)
+static void my_output_message (j_common_ptr cinfo)
 {
 	char buffer[JMSG_LENGTH_MAX + 1];
 
@@ -222,19 +215,17 @@ void print_usage(void)
 		"   -, --stdin     Read input from standard input (instead of a file)\n"
 		"\n\n");
 
-
 	exit(0);
 }
 
 
 void parse_args(int argc, char **argv)
 {
-	int i, c;
-
 	while(1) {
 		opt_index=0;
-		if ( (c=getopt_long(argc,argv, "livVdcChqm:f:52sHj",
-						long_options, &opt_index))  == -1)
+		const int c = getopt_long(argc,argv, "livVdcChqm:f:52sHj",
+					  long_options, &opt_index);
+		if (c == -1)
 			break;
 		switch (c) {
 		case 'm':
@@ -303,7 +294,7 @@ void parse_args(int argc, char **argv)
 	}
 
 	/* check for '-' option indicating input is from stdin... */
-	i = optind;
+	int i = optind;
 	while (argv[i]) {
 		if (argv[i][0]=='-' && argv[i][1]==0)
 			stdin_mode=1;
@@ -361,21 +352,13 @@ void free_jpeg_info(struct jpeg_info *info)
 
 void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *info)
 {
-	jpeg_saved_marker_ptr cmarker;
-	char marker_str[256], info_str[256];
-	char comment_str[1024], tmp[64];
-	int special;
-	int marker_in_count = 0;
-	int comment_count = 0;
-	int unknown_count = 0;
-	unsigned long marker_in_size = 0;
-	char *seen;
-	size_t marker_types = jpeg_special_marker_types_count();
-
 	if (!cinfo || !info)
 		return;
 
-	if ((seen = malloc(marker_types)) == NULL)
+	const size_t marker_types = jpeg_special_marker_types_count();
+
+	char *seen = malloc(marker_types);
+	if (seen == NULL)
 		no_memory();
 	memset(seen, 0, marker_types);
 
@@ -384,16 +367,26 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	info->color_depth = (int)cinfo->num_components * 8;
 	info->progressive = (cinfo->progressive_mode ? 1 : 0);
 
+	char info_str[256];
 	strncopy(info_str, (cinfo->arith_code ? "Arithmetic" : "Huffman"), sizeof(info_str));
+	char comment_str[1024];
 	comment_str[0]=0;
+	char marker_str[256];
 	marker_str[0]=0;
 
 	/* Check for special (Exif/IPTC/ICC/XMP/etc...) markers */
-	cmarker=cinfo->marker_list;
+	jpeg_saved_marker_ptr cmarker=cinfo->marker_list;
+
+	char tmp[64];
+	int marker_in_count = 0;
+	int comment_count = 0;
+	int unknown_count = 0;
+	unsigned long marker_in_size = 0;
+
 	while (cmarker) {
 		marker_in_count++;
 		marker_in_size+=cmarker->data_length;
-		special = jpeg_special_marker(cmarker);
+		const int special = jpeg_special_marker(cmarker);
 
 		if (verbose_mode)
 			fprintf(stderr, "Found marker %s (0x%X): type=%s, original_length=%u, data_length=%u\n",
@@ -477,16 +470,14 @@ const char *check_status_str(int check)
 
 void print_jpeg_info(struct jpeg_info *info)
 {
-	const char *type, *einfo, *com, *error, *digest;
-	char p;
-	static int header_printed = 0;
-	static long line =  0;
-
 	if (!info)
 		return;
 
 	if (quiet_mode > 1)
 		return;
+
+	static int header_printed = 0;
+	static long line =  0;
 
 	if ((header_mode || json_mode) && !header_printed) {
 		if (csv_mode) {
@@ -535,15 +526,15 @@ void print_jpeg_info(struct jpeg_info *info)
 		header_printed = 1;
 	}
 
-	type = (info->type ? info->type : "");
-	einfo = (info->info ? info->info : "");
-	com = (info->comments ? info->comments : "");
+	const char *type = (info->type ? info->type : "");
+	const char *einfo = (info->info ? info->info : "");
+	const char *com = (info->comments ? info->comments : "");
 	if (!com_mode && !csv_mode)
 		com = "";
-	error = (info->error ? info->error : "");
-	digest = (info->digest ? info->digest : "");
+	const char *error = (info->error ? info->error : "");
+	const char *digest = (info->digest ? info->digest : "");
 
-	p = (info->progressive ? 'P' : 'N');
+	const char p = (info->progressive ? 'P' : 'N');
 
 	line++;
 
@@ -646,18 +637,15 @@ int main(int argc, char **argv)
 	char namebuf[MAXPATHLEN + 1];
 	JSAMPROW line_buffer[BUF_LINES];
 	JSAMPARRAY buf = line_buffer;
-	struct jpeg_info info;
-	volatile int i;
-	int j;
 	unsigned char *inbuf = NULL;
 	long long file_size;
 	size_t inbuffer_size;
 
-
 	/* Initialize memory structures... */
-	for(i = 0; i < BUF_LINES; i++) {
+	for(int i = 0; i < BUF_LINES; i++) {
 		buf[i] = NULL;
 	}
+	struct jpeg_info info;
 	clear_jpeg_info(&info);
 	cinfo.err = jpeg_std_error(&jerr.pub);
 	jpeg_create_decompress(&cinfo);
@@ -666,7 +654,7 @@ int main(int argc, char **argv)
 
 	/* Parse command line parameters */
 	parse_args(argc, argv);
-	i=(optind > 0 ? optind : 1);
+	int i=(optind > 0 ? optind : 1);
 
 	/* Loop to process input file(s) */
 	do {
@@ -754,7 +742,7 @@ int main(int argc, char **argv)
 		/* Read JPEG file header */
 		global_error_counter=0;
 		jpeg_save_markers(&cinfo, JPEG_COM, 0xffff);
-		for (j = 0; j < 16; j++) {
+		for (int j = 0; j < 16; j++) {
 			jpeg_save_markers(&cinfo, JPEG_APP0 + j, 0xffff);
 		}
 		jpeg_mem_src(&cinfo, inbuf, file_size);
@@ -769,7 +757,7 @@ int main(int argc, char **argv)
 			cinfo.scale_num = 1;
 			jpeg_start_decompress(&cinfo);
 
-			for (j = 0; j < BUF_LINES; j++) {
+			for (int j = 0; j < BUF_LINES; j++) {
 				buf[j] = malloc(sizeof(JSAMPLE) * cinfo.output_width *
 						cinfo.out_color_components);
 				if (!buf[j])

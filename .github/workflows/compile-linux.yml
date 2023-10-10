@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, ubuntu-latest]
-	arch: [x86_64]
+        arch: [x86_64]
 
     steps:
       - name: Clone repository
@@ -32,7 +32,7 @@ jobs:
         run: |
           ./configure
           make -j
-	  make printable.man
+          make printable.man
 
       # Gather documentation and executables to a common directory
       - name: Prepare files

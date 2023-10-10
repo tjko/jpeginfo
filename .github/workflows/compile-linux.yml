@@ -1,4 +1,4 @@
-name: compile
+name: compile-linux
 on:
   push:
     branches:
@@ -15,6 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, ubuntu-latest]
+	arch: [x86_64]
 
     steps:
       - name: Clone repository
@@ -31,13 +32,14 @@ jobs:
         run: |
           ./configure
           make -j
+	  make printable.man
 
       # Gather documentation and executables to a common directory
       - name: Prepare files
         if: matrix.os != 'ubuntu-latest'
         run: |
           mkdir -p build/dist
-          cp jpeginfo COPYRIGHT LICENSE README build/dist/
+          cp jpeginfo jpeginfo.txt COPYRIGHT LICENSE README build/dist/
         shell: bash
 
       # Upload the compiled binary
@@ -45,6 +47,6 @@ jobs:
         uses: actions/upload-artifact@v3
         if: matrix.os != 'ubuntu-latest'
         with:
-          name: jpegoptim-${{ matrix.os }}
+          name: jpegoptim-${{ matrix.os }}-${{ matrix.arch }}
           path: build/dist
 

@@ -18,33 +18,33 @@ jobs:
 
     steps:
       - name: Clone repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+	uses: actions/checkout@v4
+	with:
+	  persist-credentials: false
 
       - name: Install libraries
-        run: |
-          sudo apt-get -y install libjpeg-dev
+	run: |
+	  sudo apt-get -y install libjpeg-dev
 
       # Initialize and build
       - name: Build
-        run: |
+	run: |
 	  ./configure
 	  make -j
 
       # Gather documentation and executables to a common directory
       - name: Prepare files
-        if: matrix.os != 'ubuntu-latest'
-        run: |
-          mkdir -p build/dist
-          cp jpeginfo COPYRIGHT LICENSE README build/dist/
-        shell: bash
+	if: matrix.os != 'ubuntu-latest'
+	run: |
+	  mkdir -p build/dist
+	  cp jpeginfo COPYRIGHT LICENSE README build/dist/
+	shell: bash
 
       # Upload the compiled binary
       - name: Upload binary
-        uses: actions/upload-artifact@v3
-        if: matrix.os != 'ubuntu-latest'
-        with:
-          name: jpegoptim-${{ matrix.os }}
-          path: build/dist
+	uses: actions/upload-artifact@v3
+	if: matrix.os != 'ubuntu-latest'
+	with:
+	  name: jpegoptim-${{ matrix.os }}
+	  path: build/dist
 

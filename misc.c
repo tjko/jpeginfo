@@ -36,11 +36,10 @@
 
 int is_dir(FILE *fp)
 {
-	struct stat buf;
-
 	if (!fp)
 		return 0;
 
+	struct stat buf;
 	if (fstat(fileno(fp), &buf))
 		return 0;
 
@@ -50,11 +49,10 @@ int is_dir(FILE *fp)
 
 long long filesize(FILE *fp)
 {
-	struct stat buf;
-
 	if (!fp)
 		return -1;
 
+	struct stat buf;
 	if (fstat(fileno(fp), &buf))
 		return -1;
 
@@ -62,7 +60,7 @@ long long filesize(FILE *fp)
 }
 
 
-void delete_file(char *name, int verbose_mode, int quiet_mode)
+void delete_file(const char *name, int verbose_mode, int quiet_mode)
 {
 	if (!name)
 		return;
@@ -76,15 +74,13 @@ void delete_file(char *name, int verbose_mode, int quiet_mode)
 
 char *fgetstr(char *s, size_t size, FILE *stream)
 {
-	char *p;
-
 	if (!s || size < 1 || !stream)
 		return NULL;
 
 	if (!fgets(s, size, stream))
 		return NULL;
 
-	p = s + strnlen(s, size) - 1;
+	char *p = s + strnlen(s, size) - 1;
 	while ((p >= s) && ((*p == 10) || (*p == 13)))
 		*p--=0;
 
@@ -109,13 +105,10 @@ char *digest2str(unsigned char *digest, char *s, unsigned int len)
 }
 
 
-#define MIN_READ_BUFFER_SIZE 512
+const size_t MIN_READ_BUFFER_SIZE=512;
 
 long long read_file(FILE *fp, size_t buf_size, unsigned char **bufptr)
 {
-	size_t buf_used = 0;
-	size_t bytes_read;
-
 	if (!fp || !bufptr)
 		return -1;
 
@@ -124,6 +117,9 @@ long long read_file(FILE *fp, size_t buf_size, unsigned char **bufptr)
 		buf_size = MIN_READ_BUFFER_SIZE;
 	if ((*bufptr = realloc(*bufptr, buf_size)) == NULL)
 		return -2;
+
+	size_t buf_used = 0;
+	size_t bytes_read;
 
 	/* Read file into the buffer */
 	do {
@@ -157,14 +153,14 @@ char *strncopy(char *dst, const char *src, size_t size)
 
 char *strncatenate(char *dst, const char *src, size_t size)
 {
-	int used, free;
 
 	if (!dst || !src || size < 1)
 		return dst;
 
 	/* Check if dst string is already "full" ... */
-	used = strnlen(dst, size);
-	if ((free = size - used) <= 1)
+	const int used = strnlen(dst, size);
+	const int free = size - used;
+	if (free <= 1)
 		return dst;
 
 	return strncat(dst + used, src, free - 1);

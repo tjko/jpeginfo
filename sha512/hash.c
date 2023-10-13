@@ -20,8 +20,6 @@ static const unsigned char iv[64] = {
   0x5b,0xe0,0xcd,0x19,0x13,0x7e,0x21,0x79
 } ;
 
-typedef unsigned long long uint64;
-
 int crypto_hash_sha512(unsigned char *out,const unsigned char *in,unsigned long long inlen)
 {
   unsigned char h[64];

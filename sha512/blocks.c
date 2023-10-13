@@ -1,22 +1,22 @@
 #include "crypto_hashblocks_sha512.h"
 
-typedef unsigned long long uint64;
+#include <stdint.h>
 
-static uint64 load_bigendian(const unsigned char *x)
+static uint64_t load_bigendian(const unsigned char *x)
 {
   return
-      (uint64) (x[7])
-  | (((uint64) (x[6])) << 8)
-  | (((uint64) (x[5])) << 16)
-  | (((uint64) (x[4])) << 24)
-  | (((uint64) (x[3])) << 32)
-  | (((uint64) (x[2])) << 40)
-  | (((uint64) (x[1])) << 48)
-  | (((uint64) (x[0])) << 56)
+      (uint64_t) (x[7])
+  | (((uint64_t) (x[6])) << 8)
+  | (((uint64_t) (x[5])) << 16)
+  | (((uint64_t) (x[4])) << 24)
+  | (((uint64_t) (x[3])) << 32)
+  | (((uint64_t) (x[2])) << 40)
+  | (((uint64_t) (x[1])) << 48)
+  | (((uint64_t) (x[0])) << 56)
   ;
 }
 
-static void store_bigendian(unsigned char *x,uint64 u)
+static void store_bigendian(unsigned char *x,uint64_t u)
 {
   x[7] = u; u >>= 8;
   x[6] = u; u >>= 8;
@@ -72,37 +72,37 @@ static void store_bigendian(unsigned char *x,uint64 u)
 
 int crypto_hashblocks_sha512_ref(unsigned char *statebytes,const unsigned char *in,unsigned long long inlen)
 {
-  uint64 T1;
-  uint64 T2;
+  uint64_t T1;
+  uint64_t T2;
 
-  uint64 a = load_bigendian(statebytes +  0);
-  uint64 b = load_bigendian(statebytes +  8);
-  uint64 c = load_bigendian(statebytes + 16);
-  uint64 d = load_bigendian(statebytes + 24);
-  uint64 e = load_bigendian(statebytes + 32);
-  uint64 f = load_bigendian(statebytes + 40);
-  uint64 g = load_bigendian(statebytes + 48);
-  uint64 h = load_bigendian(statebytes + 56);
+  uint64_t a = load_bigendian(statebytes +  0);
+  uint64_t b = load_bigendian(statebytes +  8);
+  uint64_t c = load_bigendian(statebytes + 16);
+  uint64_t d = load_bigendian(statebytes + 24);
+  uint64_t e = load_bigendian(statebytes + 32);
+  uint64_t f = load_bigendian(statebytes + 40);
+  uint64_t g = load_bigendian(statebytes + 48);
+  uint64_t h = load_bigendian(statebytes + 56);
 
-  uint64 state[8] = {a, b, c, d, e, f, g, h};
+  uint64_t state[8] = {a, b, c, d, e, f, g, h};
 
   while (inlen >= 128) {
-    uint64 w0  = load_bigendian(in +   0);
-    uint64 w1  = load_bigendian(in +   8);
-    uint64 w2  = load_bigendian(in +  16);
-    uint64 w3  = load_bigendian(in +  24);
-    uint64 w4  = load_bigendian(in +  32);
-    uint64 w5  = load_bigendian(in +  40);
-    uint64 w6  = load_bigendian(in +  48);
-    uint64 w7  = load_bigendian(in +  56);
-    uint64 w8  = load_bigendian(in +  64);
-    uint64 w9  = load_bigendian(in +  72);
-    uint64 w10 = load_bigendian(in +  80);
-    uint64 w11 = load_bigendian(in +  88);
-    uint64 w12 = load_bigendian(in +  96);
-    uint64 w13 = load_bigendian(in + 104);
-    uint64 w14 = load_bigendian(in + 112);
-    uint64 w15 = load_bigendian(in + 120);
+    uint64_t w0  = load_bigendian(in +   0);
+    uint64_t w1  = load_bigendian(in +   8);
+    uint64_t w2  = load_bigendian(in +  16);
+    uint64_t w3  = load_bigendian(in +  24);
+    uint64_t w4  = load_bigendian(in +  32);
+    uint64_t w5  = load_bigendian(in +  40);
+    uint64_t w6  = load_bigendian(in +  48);
+    uint64_t w7  = load_bigendian(in +  56);
+    uint64_t w8  = load_bigendian(in +  64);
+    uint64_t w9  = load_bigendian(in +  72);
+    uint64_t w10 = load_bigendian(in +  80);
+    uint64_t w11 = load_bigendian(in +  88);
+    uint64_t w12 = load_bigendian(in +  96);
+    uint64_t w13 = load_bigendian(in + 104);
+    uint64_t w14 = load_bigendian(in + 112);
+    uint64_t w15 = load_bigendian(in + 120);
 
     F(w0 ,0x428a2f98d728ae22ULL)
     F(w1 ,0x7137449123ef65cdULL)

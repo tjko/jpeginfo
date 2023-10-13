@@ -5,13 +5,13 @@ typedef unsigned long long uint64;
 static uint64 load_bigendian(const unsigned char *x)
 {
   return
-      (uint64) (x[7]) \
-  | (((uint64) (x[6])) << 8) \
-  | (((uint64) (x[5])) << 16) \
-  | (((uint64) (x[4])) << 24) \
-  | (((uint64) (x[3])) << 32) \
-  | (((uint64) (x[2])) << 40) \
-  | (((uint64) (x[1])) << 48) \
+      (uint64) (x[7])
+  | (((uint64) (x[6])) << 8)
+  | (((uint64) (x[5])) << 16)
+  | (((uint64) (x[4])) << 24)
+  | (((uint64) (x[3])) << 32)
+  | (((uint64) (x[2])) << 40)
+  | (((uint64) (x[1])) << 48)
   | (((uint64) (x[0])) << 56)
   ;
 }
@@ -72,26 +72,19 @@ static void store_bigendian(unsigned char *x,uint64 u)
 
 int crypto_hashblocks_sha512_ref(unsigned char *statebytes,const unsigned char *in,unsigned long long inlen)
 {
-  uint64 state[8];
-  uint64 a;
-  uint64 b;
-  uint64 c;
-  uint64 d;
-  uint64 e;
-  uint64 f;
-  uint64 g;
-  uint64 h;
   uint64 T1;
   uint64 T2;
 
-  a = load_bigendian(statebytes +  0); state[0] = a;
-  b = load_bigendian(statebytes +  8); state[1] = b;
-  c = load_bigendian(statebytes + 16); state[2] = c;
-  d = load_bigendian(statebytes + 24); state[3] = d;
-  e = load_bigendian(statebytes + 32); state[4] = e;
-  f = load_bigendian(statebytes + 40); state[5] = f;
-  g = load_bigendian(statebytes + 48); state[6] = g;
-  h = load_bigendian(statebytes + 56); state[7] = h;
+  uint64 a = load_bigendian(statebytes +  0);
+  uint64 b = load_bigendian(statebytes +  8);
+  uint64 c = load_bigendian(statebytes + 16);
+  uint64 d = load_bigendian(statebytes + 24);
+  uint64 e = load_bigendian(statebytes + 32);
+  uint64 f = load_bigendian(statebytes + 40);
+  uint64 g = load_bigendian(statebytes + 48);
+  uint64 h = load_bigendian(statebytes + 56);
+
+  uint64 state[8] = {a, b, c, d, e, f, g, h};
 
   while (inlen >= 128) {
     uint64 w0  = load_bigendian(in +   0);

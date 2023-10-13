@@ -24,23 +24,22 @@ static const char iv[32] = {
 
 int crypto_hash_sha256(unsigned char *out,const unsigned char *in,unsigned long long inlen)
 {
-  unsigned char h[32];
-  unsigned char padded[128];
-  int i;
-  unsigned long long bits = inlen << 3;
+  const unsigned long long bits = inlen << 3;
 
-  for (i = 0;i < 32;++i) h[i] = iv[i];
+  unsigned char h[32];
+  for (int i = 0;i < 32;++i) h[i] = iv[i];
 
   blocks(h,in,inlen);
   in += inlen;
   inlen &= 63;
   in -= inlen;
 
-  for (i = 0;i < inlen;++i) padded[i] = in[i];
+  unsigned char padded[128];
+  for (int i = 0;i < inlen;++i) padded[i] = in[i];
   padded[inlen] = 0x80;
 
   if (inlen < 56) {
-    for (i = inlen + 1;i < 56;++i) padded[i] = 0;
+    for (int i = inlen + 1;i < 56;++i) padded[i] = 0;
     padded[56] = bits >> 56;
     padded[57] = bits >> 48;
     padded[58] = bits >> 40;
@@ -51,7 +50,7 @@ int crypto_hash_sha256(unsigned char *out,const unsigned char *in,unsigned long 
     padded[63] = bits;
     blocks(h,padded,64);
   } else {
-    for (i = inlen + 1;i < 120;++i) padded[i] = 0;
+    for (int i = inlen + 1;i < 120;++i) padded[i] = 0;
     padded[120] = bits >> 56;
     padded[121] = bits >> 48;
     padded[122] = bits >> 40;
@@ -63,7 +62,7 @@ int crypto_hash_sha256(unsigned char *out,const unsigned char *in,unsigned long 
     blocks(h,padded,128);
   }
 
-  for (i = 0;i < 32;++i) out[i] = h[i];
+  for (int i = 0;i < 32;++i) out[i] = h[i];
 
   return 0;
 }

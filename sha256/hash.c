@@ -9,8 +9,6 @@ Public domain.
 
 #define blocks crypto_hashblocks_sha256
 
-typedef unsigned int uint32;
-
 static const char iv[32] = {
   0x6a,0x09,0xe6,0x67,
   0xbb,0x67,0xae,0x85,

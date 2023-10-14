@@ -1,18 +1,19 @@
+#include <stdint.h>
+
 #include "crypto_hashblocks_sha256.h"
 
-typedef unsigned int uint32;
 
-static uint32 load_bigendian(const unsigned char *x)
+static uint32_t load_bigendian(const unsigned char *x)
 {
   return
-      (uint32) (x[3])
-  | (((uint32) (x[2])) << 8)
-  | (((uint32) (x[1])) << 16)
-  | (((uint32) (x[0])) << 24)
+      (uint32_t) (x[3])
+  | (((uint32_t) (x[2])) << 8)
+  | (((uint32_t) (x[1])) << 16)
+  | (((uint32_t) (x[0])) << 24)
   ;
 }
 
-static void store_bigendian(unsigned char *x,uint32 u)
+static void store_bigendian(unsigned char *x,uint32_t u)
 {
   x[3] = u; u >>= 8;
   x[2] = u; u >>= 8;
@@ -64,37 +65,37 @@ static void store_bigendian(unsigned char *x,uint32 u)
 
 int crypto_hashblocks_sha256_ref(unsigned char *statebytes,const unsigned char *in,unsigned long long inlen)
 {
-  uint32 T1;
-  uint32 T2;
+  uint32_t T1;
+  uint32_t T2;
 
-  uint32 a = load_bigendian(statebytes +  0);
-  uint32 b = load_bigendian(statebytes +  4);
-  uint32 c = load_bigendian(statebytes +  8);
-  uint32 d = load_bigendian(statebytes + 12);
-  uint32 e = load_bigendian(statebytes + 16);
-  uint32 f = load_bigendian(statebytes + 20);
-  uint32 g = load_bigendian(statebytes + 24);
-  uint32 h = load_bigendian(statebytes + 28);
+  uint32_t a = load_bigendian(statebytes +  0);
+  uint32_t b = load_bigendian(statebytes +  4);
+  uint32_t c = load_bigendian(statebytes +  8);
+  uint32_t d = load_bigendian(statebytes + 12);
+  uint32_t e = load_bigendian(statebytes + 16);
+  uint32_t f = load_bigendian(statebytes + 20);
+  uint32_t g = load_bigendian(statebytes + 24);
+  uint32_t h = load_bigendian(statebytes + 28);
 
-  uint32 state[8] = {a, b, c, d, e, f, g, h};
+  uint32_t state[8] = {a, b, c, d, e, f, g, h};
 
   while (inlen >= 64) {
-    uint32 w0  = load_bigendian(in +  0);
-    uint32 w1  = load_bigendian(in +  4);
-    uint32 w2  = load_bigendian(in +  8);
-    uint32 w3  = load_bigendian(in + 12);
-    uint32 w4  = load_bigendian(in + 16);
-    uint32 w5  = load_bigendian(in + 20);
-    uint32 w6  = load_bigendian(in + 24);
-    uint32 w7  = load_bigendian(in + 28);
-    uint32 w8  = load_bigendian(in + 32);
-    uint32 w9  = load_bigendian(in + 36);
-    uint32 w10 = load_bigendian(in + 40);
-    uint32 w11 = load_bigendian(in + 44);
-    uint32 w12 = load_bigendian(in + 48);
-    uint32 w13 = load_bigendian(in + 52);
-    uint32 w14 = load_bigendian(in + 56);
-    uint32 w15 = load_bigendian(in + 60);
+    uint32_t w0  = load_bigendian(in +  0);
+    uint32_t w1  = load_bigendian(in +  4);
+    uint32_t w2  = load_bigendian(in +  8);
+    uint32_t w3  = load_bigendian(in + 12);
+    uint32_t w4  = load_bigendian(in + 16);
+    uint32_t w5  = load_bigendian(in + 20);
+    uint32_t w6  = load_bigendian(in + 24);
+    uint32_t w7  = load_bigendian(in + 28);
+    uint32_t w8  = load_bigendian(in + 32);
+    uint32_t w9  = load_bigendian(in + 36);
+    uint32_t w10 = load_bigendian(in + 40);
+    uint32_t w11 = load_bigendian(in + 44);
+    uint32_t w12 = load_bigendian(in + 48);
+    uint32_t w13 = load_bigendian(in + 52);
+    uint32_t w14 = load_bigendian(in + 56);
+    uint32_t w15 = load_bigendian(in + 60);
 
     F(w0 ,0x428a2f98)
     F(w1 ,0x71374491)

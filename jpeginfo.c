@@ -377,7 +377,6 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 	/* Check for special (Exif/IPTC/ICC/XMP/etc...) markers */
 	jpeg_saved_marker_ptr cmarker=cinfo->marker_list;
 
-	char tmp[64];
 	int marker_in_count = 0;
 	int comment_count = 0;
 	int unknown_count = 0;
@@ -403,6 +402,7 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 		else if (cmarker->marker == JPEG_COM) {
 			if (cmarker->data_length > 0) {
 				int o = 0;
+				char tmp[64];
 				for (int i = 0; i < cmarker->data_length; i++) {
 					char ch = cmarker->data[i];
 					if (!isprint(ch)) {
@@ -436,6 +436,7 @@ void parse_jpeg_info(struct jpeg_decompress_struct *cinfo, struct jpeg_info *inf
 		str_add_list(marker_str, sizeof(marker_str), "UNKNOWN", ",");
 
 	if (cinfo->density_unit == 1 || cinfo->density_unit == 2) {
+		char tmp[9];
 		snprintf(tmp, sizeof(tmp), "%ddp%c", MIN(cinfo->X_density, cinfo->Y_density),
 			(cinfo->density_unit == 1 ? 'i' : 'c') );
 		str_add_list(info_str, sizeof(marker_str), tmp, ",");

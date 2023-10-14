@@ -16,32 +16,24 @@
  */
 
 #include <stdint.h>
-
-#include "config.h"
-
-#if HAVE_STRING_H || STDC_HEADERS
 #include <string.h>	/* for memcpy() */
-#endif
 
 #include "md5.h"
 
 void byteReverse(unsigned char *buf, unsigned longs);
 
-#ifndef ASM_MD5
 /*
  * Note: this code is harmless on little-endian machines.
  */
 void byteReverse(unsigned char *buf, unsigned longs)
 {
-	uint32_t t;
 	do {
-		t = (uint32_t)((unsigned)buf[3]<<8 | buf[2]) << 16 |
+		const uint32_t t = (uint32_t)((unsigned)buf[3]<<8 | buf[2]) << 16 |
 		            ((unsigned)buf[1]<<8 | buf[0]);
 		*(uint32_t *)buf = t;
 		buf += 4;
 	} while (--longs);
 }
-#endif
 
 /*
  * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious
@@ -66,11 +58,8 @@ MD5Init(struct MD5Context *ctx)
 void
 MD5Update(struct MD5Context *ctx, unsigned char const *buf, unsigned len)
 {
-	uint32_t t;
-
 	/* Update bitcount */
-
-	t = ctx->bits[0];
+	uint32_t t = ctx->bits[0];
 	if ((ctx->bits[0] = t + ((uint32_t)len << 3)) < t)
 		ctx->bits[1]++;	/* Carry from low to high */
 	ctx->bits[1] += len >> 29;
@@ -78,7 +67,6 @@ MD5Update(struct MD5Context *ctx, unsigned char const *buf, unsigned len)
 	t = (t >> 3) & 0x3f;	/* Bytes already in shsInfo->data */
 
 	/* Handle any leading odd-sized chunks */
-
 	if ( t ) {
 		unsigned char *p = (unsigned char *)ctx->in + t;
 
@@ -154,8 +142,6 @@ MD5Final(unsigned char digest[16], struct MD5Context *ctx)
 	memcpy(digest, ctx->buf, 16);
 	memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
 }
-
-#ifndef ASM_MD5
 
 /* The four core functions - F1 is optimized somewhat */
 
@@ -255,4 +241,3 @@ MD5Transform(uint32_t buf[4], uint32_t const in[16])
 	buf[2] += c;
 	buf[3] += d;
 }
-#endif

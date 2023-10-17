@@ -31,6 +31,8 @@
 #else
 #include "getopt.h"
 #endif
+
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
@@ -84,21 +86,21 @@ int global_error_counter = 0;
 int global_total_errors = 0;
 int verbose_mode = 0;
 int quiet_mode = 0;
-int delete_mode = 0;
-int check_mode = 0;
-int com_mode = 0;
-int del_mode = 0;
+bool delete_mode = false;
+bool check_mode = false;
+bool com_mode = false;
+bool del_mode = false;
 int opt_index = 0;
-int list_mode = 0;
-int longinfo_mode = 0;
-int input_from_file = 0;
-int md5_mode = 0;
-int sha256_mode = 0;
+bool list_mode = false;
+bool longinfo_mode = false;
+bool input_from_file = false;
+bool md5_mode = false;
+bool sha256_mode = false;
 int sha512_mode = 0;
 int stdin_mode = 0;
-int csv_mode = 0;
-int json_mode = 0;
-int header_mode = 0;
+bool csv_mode = false;
+bool json_mode = false;
+bool header_mode = false;
 int files_stdin_mode = 0;
 char *current = NULL;
 char last_error[JMSG_LENGTH_MAX + 1];
@@ -229,8 +231,8 @@ void parse_args(int argc, char **argv)
 			break;
 		switch (c) {
 		case 'm':
-			if (!strcasecmp(optarg, "all")) del_mode=0;
-			else if (!strcasecmp(optarg, "erronly")) del_mode=1;
+			if (!strcasecmp(optarg, "all")) del_mode=false;
+			else if (!strcasecmp(optarg, "erronly")) del_mode=true;
 			else if (!quiet_mode)
 				fprintf(stderr, "Unknown parameter for -m, --mode.\n");
 			break;
@@ -243,7 +245,7 @@ void parse_args(int argc, char **argv)
 				fprintf(stderr, "Cannot open file '%s'.\n", optarg);
 				exit(2);
 			}
-			input_from_file = 1;
+			input_from_file = true;
 			break;
 		case 'v':
 			verbose_mode++;
@@ -252,10 +254,10 @@ void parse_args(int argc, char **argv)
 			print_version();
 			exit(0);
 		case 'd':
-			delete_mode=1;
+			delete_mode = true;
 			break;
 		case 'c':
-			check_mode=1;
+			check_mode = true;
 			break;
 		case 'h':
 			print_usage();
@@ -264,28 +266,28 @@ void parse_args(int argc, char **argv)
 			quiet_mode++;
 			break;
 		case 'l':
-			list_mode=1;
+			list_mode = true;
 			break;
 		case 'i':
-			longinfo_mode=1;
+			longinfo_mode = true;
 			break;
 		case '5':
-			md5_mode=1;
+			md5_mode = true;
 			break;
 		case '2':
-			sha256_mode=1;
+			sha256_mode = true;
 			break;
 		case 'C':
-			com_mode=1;
+			com_mode = true;
 			break;
 		case 's':
-			csv_mode=1;
+			csv_mode = true;
 			break;
 		case 'j':
-			json_mode=1;
+			json_mode = true;
 			break;
 		case 'H':
-			header_mode=1;
+			header_mode = true;
 			break;
 		case '?':
 			exit(1);
@@ -303,7 +305,7 @@ void parse_args(int argc, char **argv)
 
 	if (files_stdin_mode) {
 		listfile = stdin;
-		input_from_file = 1;
+		input_from_file = true;
 	}
 
 	if (delete_mode && verbose_mode && !quiet_mode)

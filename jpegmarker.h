@@ -14,9 +14,7 @@ struct jpeg_special_marker_type {
 	char *ident_str;
 };
 
-
-const extern struct jpeg_special_marker_type jpeg_special_marker_types[];
-
+extern const struct jpeg_special_marker_type jpeg_special_marker_types[];
 
 const char* jpeg_marker_name(unsigned int marker);
 const char* jpeg_special_marker_name(jpeg_saved_marker_ptr marker);

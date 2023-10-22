@@ -34,11 +34,14 @@ class JpeginfoTests(unittest.TestCase):
     def run_test(self, args, check=True):
         """execute jpeginfo for a test"""
         command = [self.program] + args
+        if self.debug:
+            print(f'\nRun command: {" ".join(command)}')
         res = subprocess.run(command, encoding="utf-8", check=check,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output = res.stdout
         if self.debug:
-            print(res)
+            print(f'Result: {res.returncode}')
+            print(f'---\n{output}\n---\n')
         return output, res.returncode
 
 
@@ -63,11 +66,20 @@ class JpeginfoTests(unittest.TestCase):
 
     def test_check_mode(self):
         """test checking image integrity"""
-        output, res = self.run_test(['-c','jpeginfo_test2.jpg'], check=False)
+        output, res = self.run_test(['-c', 'jpeginfo_test2.jpg'], check=False)
         self.assertEqual(0, res)
         self.assertRegex(output, r'\sOK\s*$')
-        output, res = self.run_test(['-c','jpeginfo_test2_broken.jpg'], check=False)
+
+    def test_broken_image(self):
+        """test processing broken image"""
+        output, res = self.run_test(['-c', 'jpeginfo_test2_broken.jpg'], check=False)
         self.assertIn('WARNING Premature end of JPEG file', output)
+        self.assertNotEqual(0, res)
+
+    def test_non_image(self):
+        """test processing non-image file"""
+        output, res = self.run_test(['-c', 'README'], check=False)
+        self.assertRegex(output, r'\sERROR\s+Not a JPEG file')
         self.assertNotEqual(0, res)
 
     def test_progressive(self):

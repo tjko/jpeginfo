@@ -530,7 +530,7 @@ void print_jpeg_info(struct jpeg_info *info)
 	const char *type = (info->type ? info->type : "");
 	const char *einfo = (info->info ? info->info : "");
 	const char *com = (info->comments ? info->comments : "");
-	if (!com_mode && !csv_mode)
+	if (!com_mode && !csv_mode && !json_mode)
 		com = "";
 	const char *error = (info->error ? info->error : "");
 	const char *digest = (info->digest ? info->digest : "");

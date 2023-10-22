@@ -177,5 +177,3 @@ char *str_add_list(char *dst, size_t size, const char *src, const char *delim)
 
 	return strncatenate(dst, src, size);
 }
-
-/* eof :-) */

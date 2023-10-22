@@ -23,5 +23,3 @@ size_t jpeg_special_marker_types_count();
 
 
 #endif /* JPEGMARKER_H */
-
-/* eof :-) */

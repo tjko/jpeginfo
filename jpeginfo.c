@@ -800,5 +800,3 @@ int main(int argc, char **argv)
 	 /* Return 1 if any errors found in files checked */
 	return (global_total_errors > 0 ? 1 : 0);
 }
-
-/* :-) */

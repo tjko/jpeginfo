@@ -103,7 +103,7 @@ spell:
 	codespell -S .git,tools
 
 test:   all
-	(cd test && $(PYTHON) test.py)
+	(cd test && $(PYTHON) test.py -v)
 
 
 .PHONY:	test

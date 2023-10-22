@@ -20,8 +20,10 @@
 
 """jpeginfo unit tester"""
 
-import unittest
+import json
 import subprocess
+import unittest
+
 
 class JpeginfoTests(unittest.TestCase):
     """jpeginfo test cases"""
@@ -44,7 +46,7 @@ class JpeginfoTests(unittest.TestCase):
         """test version information output"""
         output, _ = self.run_test(['--version'])
         self.assertIn('GNU General Public License', output)
-        self.assertRegex(output, r'jpeginfo v\d+\.\d+\.\d')
+        self.assertRegex(output, r'jpeginfo v\d+\.\d+\.\d+')
 
     def test_noarguments(self):
         """test running withouth arguments"""
@@ -57,12 +59,13 @@ class JpeginfoTests(unittest.TestCase):
         output, _ = self.run_test(['jpeginfo_test1.jpg'])
         self.assertRegex(output,
                          r'jpeginfo_test1.jpg\s+2100\s+x\s+1500\s+24bit\s+'
-                         r'P\s+Exif,IPTC,XMP,ICC,Adobe,UNKNOWN\s+320159')
+                         r'P\s+Exif,IPTC,XMP,ICC,Adobe,UNKNOWN\s+320159\s*$')
 
     def test_check_mode(self):
         """test checking image integrity"""
         output, res = self.run_test(['-c','jpeginfo_test2.jpg'], check=False)
         self.assertEqual(0, res)
+        self.assertRegex(output, r'\sOK\s*$')
         output, res = self.run_test(['-c','jpeginfo_test2_broken.jpg'], check=False)
         self.assertIn('WARNING Premature end of JPEG file', output)
         self.assertNotEqual(0, res)
@@ -102,6 +105,41 @@ class JpeginfoTests(unittest.TestCase):
         """test image comments"""
         output, _ = self.run_test(['-C', 'jpeginfo_test2.jpg'])
         self.assertIn('This is a test comment.', output)
+
+    def test_csv_output(self):
+        """test CSV output mode"""
+        output, _ = self.run_test(['-c', '--csv', '--header', 'jpeginfo_test2.jpg'])
+        lines = output.splitlines()
+        # check header
+        self.assertEqual('filename,size,hash,width,height,color_depth,markers,'
+                         'progressive_normal,extra_info,comments,status,status_detail',
+                         lines[0].rstrip())
+        # check CSV
+        self.assertEqual('"jpeginfo_test2.jpg",12851,"",256,183,"24bit","JFIF,COM",'
+                         '"N","Huffman","This is a test comment.","OK",""',
+                         lines[1].rstrip())
+
+    def test_json_output(self):
+        """test JSON output mode"""
+        output, _ = self.run_test(['-c', '--json', 'jpeginfo_test2.jpg'])
+        result = json.loads(output)
+        self.assertEqual(result,
+                         [
+                             {
+                                 'filename': 'jpeginfo_test2.jpg',
+                                 'size': 12851,
+                                 'hash': '',
+                                 'width': 256,
+                                 'height': 183,
+                                 'color_depth': '24bit',
+                                 'type': 'JFIF,COM',
+                                 'mode': 'Normal',
+                                 'info': 'Huffman',
+                                 'comments': 'This is a test comment.',
+                                 'status': 'OK',
+                                 'status_detail': ''
+                             }
+                         ])
 
 
 if __name__ == '__main__':

@@ -27,12 +27,20 @@ jobs:
         run: |
           sudo apt-get -y install libjpeg-dev
 
-      # Initialize and build
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+
       - name: Build
         run: |
           ./configure
           make -j
           make printable.man
+
+      - name: Tests
+        run: |
+          make test
 
       # Gather documentation and executables to a common directory
       - name: Prepare files

@@ -42,6 +42,7 @@ LIBS      = @LIBS@
 STRIP     = strip
 
 INSTALL_ROOT ?= $(DESTDIR)
+PYTHON ?= python3
 
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -100,5 +101,11 @@ love:
 
 spell:
 	codespell -S .git,tools
+
+test:   all
+	(cd test && $(PYTHON) test.py)
+
+
+.PHONY:	test
 
 # eof

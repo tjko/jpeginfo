@@ -9,4 +9,4 @@ jpeginfo.prn
 jpeginfo.ps
 jpeginfo.txt
 *.o
-*.jpg
+.DS_Store

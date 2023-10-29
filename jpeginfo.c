@@ -47,7 +47,7 @@
 #include "jpeginfo.h"
 
 
-#define VERSION     "1.7.1beta"
+#define VERSION     "1.7.1"
 #define COPYRIGHT   "Copyright (C) 1996-2023 Timo Kokkonen"
 
 #define BUF_LINES   512

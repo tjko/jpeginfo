@@ -149,6 +149,3 @@ const char* jpeg_special_marker_name(jpeg_saved_marker_ptr marker)
 
 	return (i >= 0 ? jpeg_special_marker_types[i].name : "Unknown");
 }
-
-
-/* eof :-) */

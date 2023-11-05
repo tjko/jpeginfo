@@ -61,6 +61,9 @@ OBJS = $(PKGNAME).o jpegmarker.o misc.o @GNUGETOPT@ \
 	sha256/hash.o sha256/blocks.o \
 	sha512/hash.o sha512/blocks.o
 
+.c.o:
+	$(CC) $(CFLAGS) -o $@ -c $<
+
 $(PKGNAME):	$(OBJS)
 	$(CC) $(CFLAGS) -o $(PKGNAME) $(OBJS) $(LDFLAGS) $(LIBS)
 

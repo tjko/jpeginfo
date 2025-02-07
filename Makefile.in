@@ -2,7 +2,7 @@
 # Makefile for jpeginfo
 #
 #
-Version = 1.7.1
+Version = 1.7.2
 PKGNAME = jpeginfo
 
 SHELL = /bin/sh
@@ -58,6 +58,7 @@ DISTNAME := $(PKGNAME)-$(Version)
 
 OBJS = $(PKGNAME).o jpegmarker.o misc.o @GNUGETOPT@ \
 	md5/md5.o \
+	sha1/sha1.o \
 	sha256/hash.o sha256/blocks.o \
 	sha512/hash.o sha512/blocks.o
 

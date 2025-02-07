@@ -249,7 +249,9 @@ void print_hash_header()
 		printf("SHA-512                                                          "
 			"                                                                ");
 		break;
+
 	default:
+		break;
 	}
 }
 

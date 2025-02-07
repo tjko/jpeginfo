@@ -33,7 +33,9 @@ INSTALLATION
 
 
 HISTORY
-        v1.7.2 - add SHA-1 digest support (-1, --sha1)
+        v1.7.2 - add SHA-1 digest support (-1, --sha1),
+                 quote double quotes in CSV/JSON output,
+                 other minor fixes.
 	v1.7.1 - add --files-from and --files-stdin options,
 	         fix -j option,
 		 lot of code cleanup by Kurt Schwehr,

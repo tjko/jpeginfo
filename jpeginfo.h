@@ -28,3 +28,4 @@ long long read_file(FILE *fp, size_t start_size, unsigned char **bufptr);
 char *strncopy(char *dst, const char *src, size_t size);
 char *strncatenate(char *dst, const char *src, size_t size);
 char *str_add_list(char *dst, size_t size, const char *src, const char *delim);
+char *escape_str(const char *src, char escape_char, char escape);

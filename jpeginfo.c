@@ -111,6 +111,9 @@ bool header_mode = false;
 int files_stdin_mode = 0;
 char *current = NULL;
 char last_error[JMSG_LENGTH_MAX + 1];
+char escape_char = 0;
+char escape_val = 0;
+
 
 static struct option long_options[] = {
 	{"verbose",0,0,'v'},
@@ -351,6 +354,15 @@ void parse_args(int argc, char **argv)
 		exit(1);
 	}
 
+	if (csv_mode) {
+		escape_char = '"';
+		escape_val = '"';
+
+	}
+	else if (json_mode) {
+		escape_char = '"';
+		escape_val = '\\';
+	}
 }
 
 
@@ -550,11 +562,13 @@ void print_jpeg_info(struct jpeg_info *info)
 		header_printed = 1;
 	}
 
-	const char *type = (info->type ? info->type : "");
-	const char *einfo = (info->info ? info->info : "");
-	const char *com = (info->comments ? info->comments : "");
+	char *filename = escape_str(info->filename, escape_char, escape_val);
+	char *com = (info->comments ? info->comments : "");
 	if (!com_mode && !csv_mode && !json_mode)
 		com = "";
+	com = escape_str(com, escape_char, escape_val);
+	const char *type = (info->type ? info->type : "");
+	const char *einfo = (info->info ? info->info : "");
 	const char *error = (info->error ? info->error : "");
 	const char *digest = (info->digest ? info->digest : "");
 
@@ -564,7 +578,7 @@ void print_jpeg_info(struct jpeg_info *info)
 
 	if (csv_mode) {
 		printf("\"%s\",%lu,\"%s\",%d,%d,\"%dbit\",\"%s\",\"%c\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-			info->filename,
+			filename,
 			(long unsigned int)info->size,
 			digest,
 			info->width,
@@ -584,7 +598,7 @@ void print_jpeg_info(struct jpeg_info *info)
 		printf(" { \"filename\":\"%s\", \"size\":%lu, \"hash\":\"%s\", \"width\":%d, \"height\":%d,"
 			" \"color_depth\":\"%dbit\", \"type\":\"%s\", \"mode\":\"%s\", \"info\":\"%s\","
 			" \"comments\":\"%s\", \"status\":\"%s\", \"status_detail\":\"%s\" }",
-			info->filename,
+			filename,
 			(long unsigned int)info->size,
 			digest,
 			info->width,
@@ -614,7 +628,7 @@ void print_jpeg_info(struct jpeg_info *info)
 		if (com_mode)
 			printf("%-32s ", com);
 		printf("%-32s %-7s%s%s\n",
-			info->filename,
+			filename,
 			check_status_str(info->check),
 			(info->error ? " " : ""),
 			error
@@ -622,7 +636,7 @@ void print_jpeg_info(struct jpeg_info *info)
 	}
 	else {
 		printf("%-32s %4d x %4d %2dbit %c %-24s ",
-			info->filename,
+			filename,
 			info->width,
 			info->height,
 			info->color_depth,
@@ -642,6 +656,12 @@ void print_jpeg_info(struct jpeg_info *info)
 			error
 			);
 	}
+
+
+	if (filename)
+		free(filename);
+	if (com)
+		free(com);
 }
 
 

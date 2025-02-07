@@ -177,3 +177,40 @@ char *str_add_list(char *dst, size_t size, const char *src, const char *delim)
 
 	return strncatenate(dst, src, size);
 }
+
+
+char *escape_str(const char *src, char c, char e)
+{
+	char *dst, *d;
+	size_t src_len = 0;
+	size_t escapes = 0;
+
+	if (!src)
+		return NULL;
+
+	/* Count how many bytes longer the new string will be... */
+	if (c) {
+		src_len = strlen(src);
+		for (int i = 0; i < src_len; i++) {
+			if (src[i] == c)
+				escapes++;
+		}
+	}
+
+	if (escapes > 0) {
+		/* Allocate longer string... */
+		if (!(dst = calloc(1, src_len + escapes + 1)))
+			return NULL;
+		d = dst;
+		for (int i = 0; i < src_len; i++) {
+			if (src[i] == c)
+				*d++ = e;
+			*d++ = src[i];
+		}
+	} else {
+		/* Nothing to do, duplicate source string... */
+		dst = strdup(src);
+	}
+
+	return dst;
+}

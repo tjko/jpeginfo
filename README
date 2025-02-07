@@ -1,5 +1,5 @@
 
-Jpeginfo v1.7.1  Copyright (c) 1995-2023, Timo Kokkonen.
+Jpeginfo v1.7.2beta  Copyright (c) 1995-2023, Timo Kokkonen.
 
 
 REQUIREMENTS
@@ -20,8 +20,8 @@ INSTALLATION
 	tar file, run configure script, and then compile the program.
 	You may want to do something like this:
 
-		gunzip -c jpeginfo-1.7.1.tar.gz | tar xf -
-		cd jpeginfo-1.7.1
+		gunzip -c jpeginfo-1.7.2.tar.gz | tar xf -
+		cd jpeginfo-1.7.2
 		./configure
 		make
 		make strip
@@ -33,7 +33,8 @@ INSTALLATION
 
 
 HISTORY
-	v1.7.1 - Add --files-from and --files-stdin options,
+        v1.7.2 - add SHA-1 digest support (-1, --sha1)
+	v1.7.1 - add --files-from and --files-stdin options,
 	         fix -j option,
 		 lot of code cleanup by Kurt Schwehr,
 	         other minor fixes.
@@ -41,7 +42,7 @@ HISTORY
 	         support for JSON output (--json),
 	         add support for reading input file from stdin (--stdin),
 		 add support for displaying column names (--header),
-		 add SHA-512 sigest support (--sha512),
+		 add SHA-512 digest support (--sha512),
 	         other minor fixes.
 	v1.6.2 - add SHA-256 digest support (--sha256 or -2),
 	         improved Win32 support thanks to tumagonx,
@@ -82,12 +83,14 @@ LATEST VERSION
 
 ACKNOWLEDGEMENT
 
-	- MD5 message-digest allgorithm used is public domain implementation
+	- MD5 message-digest algorithm used is public domain implementation
 	  written by Colin Plumb.
+	- SHA-1 message-digest algorithm used is implementation published
+	  in RFC 3174 by The Internet Society (2001).
 	- SHA-2 message-digest algorithm used is public domain implementation
 	  by D. J. Bernstein (from NaCl library).
 
 
 
 Timo <tjko@iki.fi>
-29-Oct-2023
+06-Feb-2025

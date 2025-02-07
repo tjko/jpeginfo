@@ -1,4 +1,4 @@
-.TH JPEGINFO 1 "15 Jan 2023"
+.TH JPEGINFO 1 "06 Feb 2025"
 .UC 4
 .SH NAME
 jpeginfo \- prints
@@ -30,7 +30,7 @@ do not have any data. For example if
 option is not used to check JPEG integrity, then the `status` (and `details`) columns won't be displayed.
 
 .PP
-Similarly if MD5/SHA-2 checksum (hash) is not calculated, then that column will not be shown.
+Similarly if MD5/SHA-1/SHA-2 checksum (hash) is not calculated, then that column will not be shown.
 
 .SS Default Format
 .PP
@@ -123,6 +123,9 @@ Display short usage information and exits.
 .TP 0.6i
 .B -H, --header
 Display column names header in output.
+.TP 0.6i
+.B -1, --sha1
+Calculates SHA-1 checksum for each file.
 .TP 0.6i
 .B -2, --sha256
 Calculates SHA-256 checksum for each file.
@@ -243,7 +246,7 @@ jpegoptim(1)
 Timo Kokkonen (tjko@iki.fi)
 
 .SH COPYING
-Copyright (C) 1995-2023  Timo Kokkonen
+Copyright (C) 1995-2025  Timo Kokkonen
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
